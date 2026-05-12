@@ -1,0 +1,10 @@
+\frametitle{OBS Data Extraction}
+\begin{block}{What data do we need?}
+\begin{itemize}
+  \item Accepted requests to \texttt{openSUSE:Factory}
+  \item Spec file diffs (version updates, build changes)
+  \item Source file changes (added, removed, modified)
+  \item Release notes from upstream (GitHub, archive changelogs)
+  \item The actual \texttt{.changes} file entries (our target)
+\end{itemize}
+\end{block}

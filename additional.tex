@@ -1,0 +1,847 @@
+
+
+\begin{frame}{T5 Architecture: Encoder-Decoder}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{block}{Encoder-Decoder Design}
+\begin{itemize}
+  \item \textbf{Encoder}: Processes input text
+  \begin{itemize}
+    \item Bidirectional attention
+    \item Understands full context
+    \item Creates rich representations
+  \end{itemize}
+  \item \textbf{Decoder}: Generates output text
+  \begin{itemize}
+    \item Autoregressive generation
+    \item Attends to encoder outputs
+    \item Produces token-by-token
+  \end{itemize}
+\end{itemize}
+\end{block}
+\column{0.5\textwidth}
+\begin{block}{Architecture Components}
+\begin{itemize}
+  \item Self-attention layers
+  \item Cross-attention (decoder $\rightarrow$ encoder)
+  \item Feed-forward networks
+  \item Layer normalization
+  \item Relative position embeddings
+\end{itemize}
+\end{block}
+
+\begin{block}{Model Sizes}
+\begin{itemize}
+  \item Small: 12 layers (enc+dec)
+  \item Base: 24 layers
+  \item Large: 48 layers
+  \item XL: 96 layers (3B params)
+\end{itemize}
+\end{block}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{Why Encoder-Decoder for Changelogs?}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{block}{Input Structure}
+Our input is complex:
+\begin{itemize}
+  \item Spec file diffs
+  \item File lists
+  \item Upstream changelogs
+  \item Release notes
+  \item Version information
+\end{itemize}
+\end{block}
+
+\begin{block}{Encoder Advantage}
+\begin{itemize}
+  \item Reads \textbf{all} input simultaneously
+  \item Understands relationships between parts
+  \item Efficient cross-attention
+  \item No wasted context on input
+\end{itemize}
+\end{block}
+\column{0.5\textwidth}
+\begin{block}{GPT Limitations}
+With decoder-only:
+\begin{itemize}
+  \item Input consumes output budget
+  \item 1024 input + 512 output = 1536 total
+  \item Sequential processing is slower
+  \item Less efficient for structured inputs
+\end{itemize}
+\end{block}
+
+\begin{block}{T5 Efficiency}
+\begin{itemize}
+  \item 1024 input (encoder)
+  \item + 512 output (decoder)
+  \item Separate budgets!
+  \item Parallel encoding
+\end{itemize}
+\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}{License and Usage Rights}
+\begin{block}{Apache 2.0 License}
+\begin{itemize}
+  \item \textbf{Open source} and permissive
+  \item Commercial use allowed
+  \item Modification and distribution allowed
+  \item No copyleft requirements
+  \item Patent grant included
+\end{itemize}
+\end{block}
+
+\begin{block}{What You Can Do}
+\begin{itemize}
+  \item Use in commercial products
+  \item Fine-tune on proprietary data
+  \item Deploy in production without restrictions
+  \item Modify and redistribute
+  \item No requirement to share fine-tuned weights
+\end{itemize}
+\end{block}
+
+\begin{block}{Comparison with Other Licenses}
+\begin{itemize}
+  \item \textbf{LLaMA 2/3}: Restricted commercial use (requires license for >700M users)
+  \item \textbf{GPT-4}: Closed source, API only, expensive
+  \item \textbf{T5}: Truly open with no restrictions
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{T5 vs GPT: Summary}
+\begin{center}
+\begin{tabular}{l|p{4.5cm}|p{4.5cm}}
+\textbf{Aspect} & \textbf{T5 (Encoder-Decoder)} & \textbf{GPT (Decoder-Only)} \\
+%\hline
+Architecture & Separate encoder + decoder & Single decoder \\
+%\hline
+Input processing & Bidirectional (sees all) & Unidirectional (left-to-right) \\
+%\hline
+Best for & Structured transformations, translation, summarization & Text completion, chat, general tasks \\
+%\hline
+Context efficiency & Separate input/output budgets & Shared context window \\
+%\hline
+Training objective & Span corruption (denoising) & Next token prediction \\
+%\hline
+License & Apache 2.0 (fully open) & Varies (often restricted) \\
+%\hline
+\textbf{Changelogs} & \textbf{Excellent} (structured input) & \textbf{Possible} (less efficient) \\
+\end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+\textbf{Conclusion}: T5's encoder-decoder design is ideal for our changelog generation task.
+\end{frame}
+
+\begin{frame}{Why T5?}
+\begin{columns}
+\column{0.6\textwidth}
+\begin{block}{T5 Architecture}
+\begin{itemize}
+  \item \textbf{Text-to-Text Transformer} by Google
+  \item Encoder-decoder architecture (unlike GPT)
+  \item Pre-trained on massive text corpus
+  \item Proven for sequence-to-sequence tasks
+\end{itemize}
+\end{block}
+
+\begin{block}{Available Variants}
+\begin{description}
+  \item[t5-small] 60M params, 231 MB
+  \item[t5-base] 220M params, 850 MB
+  \item[t5-large] 770M params, 2.8 GB
+\end{description}
+\end{block}
+\column{0.4\textwidth}
+\begin{block}{Perfect for Changelogs}
+\begin{itemize}
+  \item Structured input $\rightarrow$ structured output
+  \item Handles long contexts (1024 tokens)
+  \item Fast local inference
+  \item Apache 2.0 license
+\end{itemize}
+\end{block}
+\end{columns}
+\end{frame}
+\end{document}
+\section{Data Collection Pipeline}
+\begin{frame}[fragile]{OBS Data Extraction}
+\begin{block}{What data do we need?}
+\begin{itemize}
+  \item Accepted requests to \texttt{openSUSE:Factory}
+  \item Spec file diffs (version updates, build changes)
+  \item Source file changes (added, removed, modified)
+  \item Release notes from upstream (GitHub, archive changelogs)
+  \item The actual \texttt{.changes} file entries (our target)
+\end{itemize}
+\end{block}
+
+\begin{block}{Collection Strategy}
+\begin{itemize}
+  \item Use OBS API to fetch request metadata
+  \item Extract source diffs and changelogs
+  \item Filter for quality (require meaningful content)
+  \item Result: 30,000 high-quality training examples
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Data Collection Script}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
+def process_request(req_id):
+    # 1. Check if request is accepted to Factory
+    cmd = [req_getter, str(req_id), "-f", "state=accepted",
+           "-f", "target=openSUSE:Factory"]
+    data = json.loads(run_command(cmd))
+
+    # 2. Extract source details
+    action = data["Actions"][0]
+    project = action["Source"]["Project"]
+    package = action["Source"]["Package"]
+    revision = action["Source"]["Rev"]
+
+    # 3. Extract diffs from sourcediff
+    sourcediff = action["SourceDiff"]
+    spec_diff = extract_spec_diff(sourcediff)
+    changes_diff = extract_changes_diff(sourcediff)
+
+    # 4. Extract changelog from archive
+    cmd_ext = [changelog_ext, project, package, revision]
+    ext_data = json.loads(run_command(cmd_ext))
+
+    return {
+        "spec_diff": spec_diff,
+        "changes_diff": changes_diff,  # Our target!
+        "archive_changelog": ext_data["archive_changelog"],
+        "github_release_notes": ext_data["github_release_notes"]
+    }
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Data Collection Results}
+\begin{block}{Final Dataset}
+\begin{itemize}
+  \item \textbf{30,000 examples} from accepted Factory requests
+  \item Each example contains:
+  \begin{itemize}
+    \item Input: spec diffs, file lists, upstream changelogs
+    \item Target: human-written \texttt{.changes} entry
+  \end{itemize}
+  \item Filtered for quality:
+  \begin{itemize}
+    \item Removed empty changelogs
+    \item Required version updates or meaningful changes
+    \item Filtered targets exceeding 512 tokens
+  \end{itemize}
+\end{itemize}
+\end{block}
+
+\begin{block}{Sampling Strategy}
+\begin{itemize}
+  \item Used truncated Gaussian distribution (favor recent requests)
+  \item Parallel processing with rate limiting
+  \item Incremental collection with failure tracking
+\end{itemize}
+\end{block}
+\end{frame}
+
+\section{Data Preprocessing}
+\begin{frame}[fragile]{Input Format: Jinja2 Template}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
+CHANGELOG_TEMPLATE = '''
+create structured changelog for package {{ package }}
+{% if old_version %} from {{ old_version }}{% endif %}
+{% if new_version %} to {{ new_version }}{% endif %}:
+{% if archive_changelog %}changelog:
+{{ archive_changelog }}{% endif %}
+{% if github_release_notes %}github release notes:
+{{ github_release_notes }}{% endif %}
+{% if added_files %}new files: {{ added_files }}{% endif %}
+{% if removed_files %}removed files: {{ removed_files }}{% endif %}
+{% if spec_diff %}changes in spec file:
+{{ spec_diff }}{% endif %}
+'''
+\end{lstlisting}
+
+\begin{block}{Smart Truncation}
+\begin{itemize}
+  \item Binary search to fit within 1024 token limit
+  \item Preserve package name, version always
+  \item Truncate optional fields (changelog, spec diff) as needed
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Target Processing: Changes Diff}
+\begin{lstlisting}[language=Python]
+def preprocess_target_function(data):
+    """
+    Extract the actual changelog entry from .changes diff.
+    Removes the leading '+' sign from diff lines.
+    Preserves newlines explicitly.
+    """
+    results = []
+    for diff in data['changes_diff']:
+        processed_lines = []
+        for line in diff.split("\n"):
+            if line.startswith("+"):
+                content = line[1:]  # Remove '+'
+                if content.strip():
+                    processed_lines.append(content)
+
+        # Join with newline character
+        results.append("\n".join(processed_lines))
+
+    return results
+\end{lstlisting}
+
+\begin{block}{Key Insight}
+Newlines are semantic in changelog entries! Must be preserved.
+\end{block}
+\end{frame}
+
+
+\begin{frame}{Model Size Selection}
+\begin{block}{The Quality-Speed Trade-off}
+\begin{center}
+\begin{tabular}{l|r|r|l|l}
+\textbf{Model} & \textbf{Params} & \textbf{Size} & \textbf{Speed} & \textbf{Quality} \\
+%\hline
+t5-small & 60M & 231 MB & Very Fast & Poor (hallucinates) \\
+t5-base & 220M & 850 MB & Fast & Good \\
+\textbf{t5-large} & \textbf{770M} & \textbf{2.8 GB} & \textbf{Medium} & \textbf{Excellent} \\
+\end{tabular}
+\end{center}
+\end{block}
+
+\begin{block}{Recommendation}
+\begin{itemize}
+  \item \textbf{t5-large}: Best quality, acceptable speed with quantization
+  \item t5-base: Good balance for resource-constrained environments
+  \item t5-small: \textcolor{red}{NOT recommended} - generates hallucinated content
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Training Configuration}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{block}{Hyperparameters}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
+TrainingArguments(
+    num_train_epochs=10,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    # Effective batch size = 16
+
+    learning_rate=1e-4,
+    warmup_ratio=0.1,
+    weight_decay=0.01,
+    lr_scheduler_type='cosine',
+
+    optim="adafactor",
+    fp16=True,  # Mixed precision
+
+    eval_strategy='steps',
+    eval_steps=500,
+    early_stopping_patience=5
+)
+\end{lstlisting}
+\end{block}
+\column{0.5\textwidth}
+\begin{block}{Key Choices}
+\begin{itemize}
+  \item \textbf{Adafactor}: Memory-efficient optimizer
+  \item \textbf{FP16}: Faster training on GPU
+  \item \textbf{Early stopping}: Prevent overfitting
+  \item \textbf{Cosine schedule}: Smooth learning rate decay
+\end{itemize}
+\end{block}
+
+\begin{block}{Token Limits}
+\begin{itemize}
+  \item Max input: 1024 tokens
+  \item Max output: 512 tokens
+  \item Filtered longer targets
+\end{itemize}
+\end{block}
+\end{columns}
+\end{frame}
+
+\section{Training Results}
+\begin{frame}{Training Dataset Sizes}
+\begin{block}{Full Dataset (changes.json)}
+\begin{itemize}
+  \item \textbf{30,000 examples}
+  \item 94 MB JSON file
+  \item Training split: 27,000 examples (90\%)
+  \item Validation split: 3,000 examples (10\%)
+\end{itemize}
+\end{block}
+
+\begin{block}{Small Dataset Experiment (changes-small.json)}
+\begin{itemize}
+  \item \textbf{15,389 examples} (~50\% of full dataset)
+  \item 49 MB JSON file
+  \item Used to test overfitting and data requirements
+\end{itemize}
+\end{block}
+
+\begin{alertblock}{Key Finding}
+Small dataset (15k examples) showed overfitting and lower quality.\\
+\textbf{30,000 examples} provided good generalization.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Training Infrastructure}
+\begin{block}{Compute Requirements}
+\begin{itemize}
+  \item \textbf{t5-large}: ~10 hours on single GPU (RTX 3090 / A100)
+  \item \textbf{t5-base}: ~4 hours on single GPU
+  \item \textbf{t5-small}: ~2 hours on single GPU
+\end{itemize}
+\end{block}
+
+\begin{block}{All Models Trained Identically}
+\begin{itemize}
+  \item Same dataset (30,000 examples)
+  \item Same hyperparameters
+  \item Only difference: base model size
+  \item This allows fair comparison of model capabilities
+\end{itemize}
+\end{block}
+
+\begin{block}{Storage Locations}
+\begin{itemize}
+  \item Training runs: \texttt{~/scratch/fine\_tune\_t5\_final/}
+  \item Small dataset experiments: \texttt{~/scratch/fine\_tune\_t5\_small/}
+\end{itemize}
+\end{block}
+\end{frame}
+
+\section{Special Considerations}
+\begin{frame}[fragile]{The Newline Token Challenge}
+\begin{block}{Problem}
+Changelog entries have semantic structure encoded in newlines:
+
+\texttt{- update to version 2.0:}
+
+\texttt{~~* Fix critical bug}
+
+\texttt{~~* Add new feature}
+
+But T5 tokenizer doesn't preserve \texttt{\textbackslash n} well by default!
+\end{block}
+
+\begin{block}{Solution}
+\begin{lstlisting}[language=Python]
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+tokenizer.add_special_tokens({'additional_special_tokens': ['\n']})
+
+# Resize model embeddings
+model = T5ForConditionalGeneration.from_pretrained(model_id)
+model.resize_token_embeddings(len(tokenizer))
+\end{lstlisting}
+\end{block}
+
+\begin{alertblock}{Critical}
+Must decode outputs carefully to preserve the \texttt{\textbackslash n} token!
+\end{alertblock}
+\end{frame}
+
+\begin{frame}[fragile]{Decoding with Newline Preservation}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def decode_changelog(output_ids):
+    import re
+
+    # Decode without removing special tokens first
+    decoded = tokenizer.decode(output_ids,
+                              skip_special_tokens=False)
+
+    # Remove only standard T5 tokens, keep our custom \n token
+    decoded = decoded.replace(tokenizer.pad_token, "")
+    decoded = decoded.replace(tokenizer.eos_token, "")
+
+    # Remove sentinel tokens (e.g., <extra_id_0>)
+    decoded = re.sub(r"<extra_id_\d+>", "", decoded)
+
+    return decoded.strip()
+\end{lstlisting}
+
+\begin{block}{Result}
+Properly formatted, multi-line changelog entries!
+\end{block}
+\end{frame}
+
+\section{Model Optimization}
+\begin{frame}{Quantization: Making Models Smaller}
+\begin{block}{What is Quantization?}
+Reduces numerical precision of model weights:
+\begin{itemize}
+  \item \textbf{float32}: Full precision (baseline)
+  \item \textbf{float16}: Half precision (GPU only, 50\% size)
+  \item \textbf{int8}: 8-bit integers (75\% size reduction)
+\end{itemize}
+\end{block}
+
+\begin{block}{Benefits}
+\begin{itemize}
+  \item \textbf{Smaller models}: 75\% size reduction with int8
+  \item \textbf{Faster inference}: Fewer memory operations
+  \item \textbf{Lower memory}: Fits on smaller GPUs or CPU
+  \item \textbf{Minimal quality loss}: Usually <1\% accuracy drop
+\end{itemize}
+\end{block}
+
+\begin{block}{Trade-offs}
+\begin{itemize}
+  \item Some quantization requires specific hardware (GPU for float16)
+  \item int8 works on both CPU and GPU
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{CTranslate2: Optimized Inference}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{block}{What is CTranslate2?}
+\begin{itemize}
+  \item Fast inference library for Transformers
+  \item Optimized C++ backend
+  \item \textbf{2-4x faster} than PyTorch
+  \item Lower memory usage
+  \item Supports quantization
+\end{itemize}
+\end{block}
+
+\begin{block}{Quantization Variants}
+\begin{itemize}
+  \item float32 (full precision)
+  \item float16 (GPU only)
+  \item int8\_float16 (GPU only)
+  \item \textbf{int8} (CPU/GPU compatible)
+\end{itemize}
+\end{block}
+\column{0.5\textwidth}
+\textbf{Performance Comparison}
+
+\begin{center}
+\begin{tabular}{l|r|r}
+\textbf{Backend} & \textbf{Size} & \textbf{Speed} \\
+Transformers & 2.8 GB & 1x \\
+CT2 float32 & 2.8 GB & 2x \\
+CT2 int8 & 770 MB & 2x \\
+\textbf{CT2 int8\_float16} & \textbf{770 MB} & \textbf{4x} \\
+\end{tabular}
+\end{center}
+
+\textit{*GPU only for int8\_float16}
+
+\begin{block}{Recommendation}
+\begin{itemize}
+  \item \textbf{CPU}: int8 (770 MB)
+  \item \textbf{GPU}: int8\_float16 (770 MB, 4x faster)
+\end{itemize}
+\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Converting to CTranslate2}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\small]
+# Install CTranslate2
+pip install ctranslate2
+
+# Convert model
+ct2-transformers-converter \
+  --model ./t5-large \
+  --output_dir ./ct2_models/t5-large-ct2-int8 \
+  --quantization int8
+
+# Also create GPU-optimized version
+ct2-transformers-converter \
+  --model ./t5-large \
+  --output_dir ./ct2_models/t5-large-ct2-int8_float16 \
+  --quantization int8_float16
+\end{lstlisting}
+
+\begin{block}{Result}
+Multiple optimized models for different deployment scenarios!
+\end{block}
+\end{frame}
+
+\section{Hugging Face Upload}
+\begin{frame}{Publishing to Hugging Face}
+\begin{block}{Repository Structure}
+\texttt{mslacken/t5-finetune-changelog}
+\begin{itemize}
+  \item \texttt{t5-small/} - 231 MB (not recommended)
+  \item \texttt{t5-base/} - 850 MB
+  \item \texttt{t5-large/} - 2.8 GB (recommended)
+  \item \texttt{ct2\_models/}
+  \begin{itemize}
+    \item \texttt{t5-base-ct2-int8/} - 220 MB
+    \item \texttt{t5-large-ct2-int8/} - 770 MB
+    \item \texttt{t5-large-ct2-int8\_float16/} - 770 MB (GPU)
+    \item ... (8 variants total)
+  \end{itemize}
+\end{itemize}
+\end{block}
+
+\begin{block}{Benefits of Hugging Face}
+\begin{itemize}
+  \item Easy model distribution
+  \item Version control with Git LFS
+  \item Model cards with documentation
+  \item Direct download in code
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Using the Published Models}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
+from huggingface_hub import snapshot_download
+import ctranslate2
+from transformers import AutoTokenizer
+
+# Download CTranslate2 model
+repo_id = "mslacken/t5-finetune-changelog"
+model_size = "large"
+quantization = "int8"
+
+model_dir = snapshot_download(
+    repo_id=repo_id,
+    allow_patterns=f"ct2_models/t5-{model_size}-ct2-{quantization}/*"
+)
+
+ct2_model_path = f"{model_dir}/ct2_models/t5-{model_size}-ct2-{quantization}"
+
+# Load model and tokenizer
+translator = ctranslate2.Translator(ct2_model_path, device="cpu")
+tokenizer = AutoTokenizer.from_pretrained(repo_id,
+                                          subfolder=f"t5-{model_size}")
+
+# Ready to use!
+\end{lstlisting}
+\end{frame}
+
+\section{Final Implementation}
+\begin{frame}{changelog-gen Package}
+\begin{columns}
+\column{0.6\textwidth}
+\begin{block}{Features}
+\begin{itemize}
+  \item Python package (\texttt{pip install changelog-ai})
+  \item Integrates with \texttt{osc} and \texttt{git}
+  \item Supports both Transformers and CTranslate2 backends
+  \item Opens editor for review (like \texttt{osc vc})
+  \item Includes original diffs as comments
+  \item Configurable model size and quantization
+\end{itemize}
+\end{block}
+
+\begin{block}{Installation}
+\texttt{pip install changelog-ai[all]}
+\end{block}
+\column{0.4\textwidth}
+\begin{block}{Usage}
+\texttt{\# In OBS package}
+
+\texttt{changelog-ai}
+
+\vspace{0.3cm}
+\texttt{\# From git range}
+
+\texttt{changelog-ai --commit-range HEAD\textasciitilde5..HEAD}
+
+\vspace{0.3cm}
+\texttt{\# From stdin}
+
+\texttt{git diff | changelog-ai --stdin}
+\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Example Output}
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
+-------------------------------------------------------------------
+Mon May 11 15:30:00 UTC 2026 - user@example.com
+
+# AI-generated changelog entry:
+- update to version 4.3.0rc2:
+  * Provision interface is not tied to 'eth0' any more. The
+    provision interface must be named 'default' now. The file
+    'nodes.yaml' must be changed accordingly.
+  * Creating of '/etc/exports' can now be disabled, so that
+    wwctl configure -a wont overwrite an existing '/etc/exports'.
+  * All configuration files for the host (/etc/exports,
+    /etc/dhcpd.conf, /etc/hosts) are now populated from templates.
+
+# Original changes used for generation:
+# changelog:
+# ## [Unreleased]
+# ### Changed
+# - Provision interface is not tied to 'eth0' any more...
+# - Creating of '/etc/exports' can now be disabled...
+# - All configurations files for the host are now...
+-------------------------------------------------------------------
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Integration with OBS Workflow}
+\begin{block}{Traditional Workflow}
+\begin{enumerate}
+  \item Edit package files
+  \item Run \texttt{osc vc} to manually write changelog
+  \item Review and commit
+\end{enumerate}
+\end{block}
+
+\begin{block}{AI-Enhanced Workflow}
+\begin{enumerate}
+  \item Edit package files
+  \item Run \texttt{changelog-ai} to generate entry
+  \item \textcolor{blue}{Review AI-generated content in editor}
+  \item Edit if needed, save
+  \item Commit with \texttt{osc commit}
+\end{enumerate}
+\end{block}
+
+\begin{alertblock}{Human in the Loop}
+AI generates draft, human reviews and approves!
+\end{alertblock}
+\end{frame}
+
+\section{Lessons Learned}
+\begin{frame}{Small Dataset Experiments}
+\begin{block}{Tested with 15,389 examples (50\% of full dataset)}
+Location: \texttt{~/scratch/fine\_tune\_t5\_small/}
+\end{block}
+
+\begin{block}{Observations}
+\begin{itemize}
+  \item \textcolor{red}{Overfitting}: Validation loss increased after epoch 3
+  \item \textcolor{red}{Lower quality}: More generic, less specific entries
+  \item \textcolor{red}{Repetition}: Model repeated phrases more often
+  \item \textcolor{green}{Still usable}: Better than nothing, but noticeable quality drop
+\end{itemize}
+\end{block}
+
+\begin{block}{Conclusion}
+\begin{itemize}
+  \item \textbf{30,000 examples}: Good generalization, high quality
+  \item \textbf{15,000 examples}: Marginal, shows overfitting
+  \item More data = better quality (up to a point)
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Key Takeaways}
+\begin{block}{Technical}
+\begin{enumerate}
+  \item \textbf{Model size matters}: t5-large >> t5-base >> t5-small
+  \item \textbf{Data quality}: 30k curated examples better than 100k noisy ones
+  \item \textbf{Special tokens}: Handle newlines explicitly for structured output
+  \item \textbf{Quantization}: 75\% size reduction with minimal quality loss
+  \item \textbf{CTranslate2}: 2-4x speedup for free
+\end{enumerate}
+\end{block}
+
+\begin{block}{Practical}
+\begin{itemize}
+  \item Local LLMs are viable for specialized tasks
+  \item Fine-tuning requires good infrastructure (GPU, time)
+  \item Human review is still essential
+  \item Packaging and distribution matter (Hugging Face, pip)
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Performance Summary}
+\begin{center}
+\begin{tabular}{l|l|r|r|r}
+\textbf{Model} & \textbf{Backend} & \textbf{Size} & \textbf{Speed} & \textbf{Quality} \\[0.5ex]
+t5-small & Transformers & 231 MB & 5 sec & Poor \\
+t5-base & Transformers & 850 MB & 8 sec & Good \\
+t5-large & Transformers & 2.8 GB & 15 sec & Excellent \\[0.5ex]
+t5-base & CT2 int8 & 220 MB & 3 sec & Good \\
+\textbf{t5-large} & \textbf{CT2 int8} & \textbf{770 MB} & \textbf{6 sec} & \textbf{Excellent} \\
+t5-large & CT2 int8\_float16 & 770 MB & 3 sec & Excellent \\
+\end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+\textit{*Timing on AMD Ryzen 9 7950X CPU / RTX 4090 GPU}
+
+\vspace{0.5cm}
+\textbf{Recommended}: t5-large with CTranslate2 int8 (CPU) or int8\_float16 (GPU)
+\end{frame}
+
+\begin{frame}{Future Work}
+\begin{block}{Potential Improvements}
+\begin{itemize}
+  \item \textbf{Larger models}: Try T5-XL (3B params) or Flan-T5
+  \item \textbf{More data}: Expand to 50k-100k examples
+  \item \textbf{Multi-lingual}: Support non-English changelogs
+  \item \textbf{Interactive refinement}: Allow user to guide generation
+  \item \textbf{Integration}: Direct integration into OBS web UI
+\end{itemize}
+\end{block}
+
+\begin{block}{Other Applications}
+Same approach works for:
+\begin{itemize}
+  \item Commit message generation
+  \item PR description generation
+  \item Documentation updates
+  \item Release notes automation
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Resources}
+\begin{block}{Code \& Models}
+\begin{itemize}
+  \item \textbf{Models}: \url{https://huggingface.co/mslacken/t5-finetune-changelog}
+  \item \textbf{Package}: \url{https://github.com/mslacken/changelog-gen}
+  \item \textbf{Data pipeline}: \url{https://github.com/mslacken/osc-mcp}
+\end{itemize}
+\end{block}
+
+\begin{block}{Installation}
+\texttt{pip install changelog-ai[all]}
+
+\texttt{changelog-ai --help}
+\end{block}
+
+\begin{block}{Contact}
+Christian Goll - \texttt{cgoll@suse.com}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{Questions?}
+\begin{columns}
+\column{0.5\textwidth}
+Thank you for your attention!
+
+\vspace{1cm}
+\textbf{Try it yourself:}
+
+\texttt{pip install changelog-ai[all]}
+
+\texttt{cd ~/osc/project/package}
+
+\texttt{changelog-ai}
+\column{0.5\textwidth}
+% \includegraphics[width=.8\linewidth]{vector-chameleon-213x300}
+\end{columns}
+\end{frame}
+\end{document}

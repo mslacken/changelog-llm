@@ -153,7 +153,6 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
 \begin{itemize}
     \item \textbf{Encoder}: Bidirectional processing of the input sequence.
     \item \textbf{Decoder}: Autoregressive generation with cross-attention to encoder.
-    \item Highly efficient for tasks like summarization and translation.
 \end{itemize}
 \column{0.6\textwidth}
 \centering
@@ -176,30 +175,30 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
     \node [block] (d_emb) at (4.5,1) {Embedding};
     \node [block] (d_att_m) at (4.5,2.5) {Masked Multi-Head Attention};
     \node [norm] (d_n1) at (4.5,3.5) {Add \& Norm};
-    \node [block] (d_att_c) at (4.5,5) {Cross-Attention};
-    \node [norm] (d_n2) at (4.5,6) {Add \& Norm};
-    \node [block] (d_ff) at (4.5,7.5) {Feed Forward};
-    \node [norm] (d_n3) at (4.5,8.5) {Add \& Norm};
+    \node [block] (d_att_c) at (4.5,6) {Cross-Attention};
+    \node [norm] (d_n2) at (4.5,7) {Add \& Norm};
+    \node [block] (d_ff) at (4.5,8.5) {Feed Forward};
+    \node [norm] (d_n3) at (4.5,9.5) {Add \& Norm};
     \node [fit=(d_att_m) (d_n3), draw, red!50, dashed, label=right:Decoder Block] {};
 
-    \node [block, fill=green!10] (out) at (4.5,10) {Linear \& Softmax};
+    \node [block, fill=green!10] (out) at (4.5,11) {Linear \& Softmax};
 
     \path [line] (e_in) -- (e_emb);
     \path [line] (e_emb) -- (e_att);
-    \path [line] (e_att) -- (e_n1);
+    \draw [thick] (e_att) -- (e_n1);
     \path [line] (e_n1) -- (e_ff);
-    \path [line] (e_ff) -- (e_n2);
+    \draw [thick] (e_ff) -- (e_n2);
 
     \path [line] (d_in) -- (d_emb);
     \path [line] (d_emb) -- (d_att_m);
-    \path [line] (d_att_m) -- (d_n1);
+    \draw [thick] (d_att_m) -- (d_n1);
     \path [line] (d_n1) -- (d_att_c);
-    \path [line] (d_att_c) -- (d_n2);
+    \draw [thick] (d_att_c) -- (d_n2);
     \path [line] (d_n2) -- (d_ff);
-    \path [line] (d_ff) -- (d_n3);
+    \draw [thick] (d_ff) -- (d_n3);
     \path [line] (d_n3) -- (out);
 
-    \draw [line, blue] (e_n2.east) -- ++(0.5,0) |- (d_att_c.west);
+    \draw [line, blue] (e_n2.east) -- (d_att_c.west);
 \end{tikzpicture}
 \end{columns}
 \end{frame}
@@ -210,7 +209,6 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
 \begin{itemize}
     \item \textbf{Streamlined}: Unified architecture for both input and output.
     \item \textbf{Causal Masking}: Each token only attends to previous tokens.
-    \item Currently the dominant architecture for LLMs (GPT-4, LLaMA, Mistral).
 \end{itemize}
 \column{0.6\textwidth}
 \centering
@@ -231,15 +229,80 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
 
     \path [line] (in) -- (emb);
     \path [line] (emb) -- (att);
-    \path [line] (att) -- (n1);
+    \draw [thick] (att) -- (n1);
     \path [line] (n1) -- (ff);
-    \path [line] (ff) -- (n2);
+    \draw [thick] (ff) -- (n2);
     \path [line] (n2) -- (out);
 
     \draw [line, rounded corners, dashed, red!70, -{Stealth[scale=1.0]}] (out.west) -- ++(-1.2,0) |- (in.west) node[pos=0.25, left, rotate=90, fill=white, inner sep=1pt] {Next Token};
 \end{tikzpicture}
 \end{columns}
 \end{frame}
+\begin{frame}{T5: Origins and History}
+\begin{block}{The T5 Paper (2019) by Google}
+\begin{itemize}
+  \item \textbf{T5 = Text-To-Text Transfer Transformer}
+  \item Systematic study of NLP transfer learning
+  \item \textbf{Everything is text-to-text}
+  \item Apache 2.0 License
+\end{itemize}
 
+\end{block}
+\begin{block}{Pre-training}
+\begin{itemize}
+  \item Trained on C4 dataset (Colossal Clean Crawled Corpus)
+  \item 750 GB of cleaned web text
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{T5 Architecture: Encoder-Decoder}
+\begin{columns}[t]
+\column{0.5\textwidth}
+\begin{block}{Encoder-Decoder Design}
+\begin{itemize}
+  \item \textbf{Encoder}: Processes input text
+  \begin{itemize}
+    \item Bidirectional attention
+    \item Understands full context
+    \item Creates rich representations
+  \end{itemize}
+  \item \textbf{Decoder}: Generates output text
+  \begin{itemize}
+    \item Autoregressive generation
+    \item Attends to encoder outputs
+    \item Produces token-by-token
+  \end{itemize}
+\end{itemize}
+\end{block}
+\column{0.5\textwidth}
+
+\begin{block}{Model Sizes}
+\centering
+\vspace{0.5cm}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Model} & \textbf{Params} & \textbf{Layers} & \textbf{Size} \\ \hline
+Small & 60M  & 12 & 242 MB \\
+Base  & 220M & 24 & 892 MB \\
+Large & 770M & 48 & 2.75 GB \\ \hline
+\end{tabular}
+\end{block}
+\vfill
+\end{columns}
+\end{frame}
+
+\section{Data Collection Pipeline}
+\begin{frame}[fragile]{OBS Data Extraction}
+\begin{block}{What data do we need?}
+\begin{itemize}
+  \item Accepted requests to \texttt{openSUSE:Factory}
+  \item Spec file diffs (version updates, build changes)
+  \item Source file changes (added, removed, modified)
+  \item Release notes from upstream (GitHub, archive changelogs)
+  \item The actual \texttt{.changes} file entries (our target)
+\end{itemize}
+\end{block}
+\end{frame}
 \end{document}
 
