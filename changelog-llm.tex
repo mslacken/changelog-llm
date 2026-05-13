@@ -52,7 +52,7 @@
 \end{frame}
 
 \begin{frame}[fragile]{Quickstart}
-\begin{block}{Tumbelweed}
+\begin{block}{Tumbleweed}
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 #> sudo zypper in python-changelog-gen
 #> cd SUPER_DUPER_PKG
@@ -77,7 +77,7 @@
 \begin{frame}{Motivation}
   \begin{block}{Changelogs in Open Build Service}
     \begin{itemize}
-      \item Changelog of packages are created from \texttt{.changes} file
+      \item Package changelogs are created from \texttt{.changes} files
       \item Mostly reflect upstream changelog
       \item \textbf{But} must also contain changes for package creation
     \end{itemize}
@@ -85,7 +85,7 @@
   \begin{block}{The Opportunity}
     \begin{itemize}
       \item Accepted requests to \texttt{openSUSE:Factory} should all be in the right format
-      \item submission requests contain the necessary information
+      \item Submission requests contain the necessary information
       \item Perfect candidate for LLM automation
     \end{itemize}
   \end{block}
@@ -94,17 +94,17 @@
 \begin{frame}{Why Fine-tune a Local LLM?}
 \begin{columns}
 \column{0.6\textwidth}
-\begin{block}{Existing tools}
+\begin{block}{Existing Tools}
 \begin{itemize}
-  \item Existing tools can the same
-  \item Can't pickup changes to \texttt {.spec} or \texttt{\_multibuild} files
+  \item Existing tools can do the same
+  \item Cannot capture changes to \texttt{.spec} or \texttt{\_multibuild} files
 \end{itemize}
 \end{block}
 \begin{block}{Advantages}
 \begin{itemize}
   \item \textbf{Hype Train}
-  \item pickup semantic changes like avoid to mention changes regarding Apple
-  \item possible to run complete locally, can handle embargoed changes
+  \item Pick up semantic changes (e.g., avoiding mentions of Apple-specific changes)
+  \item Can be run completely locally, handling embargoed changes
 \end{itemize}
 \end{block}
 \column{0.3\textwidth}
@@ -112,16 +112,16 @@
 \end{columns}
 \end{frame}
 
-\section{T5 model}
-\begin{frame}{Which model to choose}
+\section{T5 Model}
+\begin{frame}{Which Model to Choose?}
 \begin{columns}
 \column{0.6\textwidth}
 \begin{block}{Constraints}
 \begin{itemize}
-    \item model must be small (arround $1\texttt{Gb}$)
-    \item permissive license
-    \item not quantized, so that it can be finetuned
-    \item transformer based and no GPT model
+    \item Model must be small (around $1\text{ GB}$)
+    \item Permissive license
+    \item Not quantized, so that it can be fine-tuned
+    \item Transformer-based and not a GPT model
 \end{itemize}
 \end{block}
 \column{0.3\textwidth}
@@ -129,7 +129,7 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}{Encoder-Decoder vs Decoder-Only}
+\begin{frame}{Encoder-Decoder vs. Decoder-Only}
 \begin{block}{Encoder-Decoder: T5, BART, mT5}
 \begin{itemize}
   \item \textbf{Bidirectional encoder}: Sees entire input at once
@@ -139,7 +139,7 @@
 
 \begin{block}{Decoder-Only: GPT-3, GPT-4, LLaMA, Mistral}
 \begin{itemize}
-  \item \textbf{Single decoder}: Input and output in same stream but only sees previous tokens
+  \item \textbf{Single decoder}: Input and output in same stream, but only sees previous tokens
   \item Best for: Text completion, general-purpose chat
 \end{itemize}
 \end{block}
@@ -153,8 +153,8 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
 \begin{columns}
 \column{0.4\textwidth}
 \begin{itemize}
-    \item \textbf{Encoder}: Bidirectional processing of the input sequence.
-    \item \textbf{Decoder}: Autoregressive generation with cross-attention to encoder.
+    \item \textbf{Encoder}: Bidirectional processing of the input sequence
+    \item \textbf{Decoder}: Autoregressive generation with cross-attention to encoder
 \end{itemize}
 \column{0.6\textwidth}
 \centering
@@ -209,8 +209,8 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
 \begin{columns}
 \column{0.4\textwidth}
 \begin{itemize}
-    \item \textbf{Streamlined}: Unified architecture for both input and output.
-    \item \textbf{Causal Masking}: Each token only attends to previous tokens.
+    \item \textbf{Streamlined}: Unified architecture for both input and output
+    \item \textbf{Causal Masking}: Each token only attends to previous tokens
 \end{itemize}
 \column{0.6\textwidth}
 \centering
@@ -310,35 +310,35 @@ Large & 770M & 48 & 2.75 GB \\ \hline
 \begin{frame}{OBS Data Extraction}
 \begin{columns}
 \column{0.6\textwidth}
-\begin{block}{Naive approach}
+\begin{block}{Naive Approach}
   \begin{itemize}
-    \item Choose a random number smaller than latest request
+    \item Choose a random number smaller than the latest request
     \item Check if submission went to \texttt{openSUSE:Factory} and was accepted
     \item Identify \texttt{Source0}
     \item Extract first 20 lines of \texttt{CHANGELOG} \ldots
-    \item For github links fetch github release page
+    \item For GitHub links, fetch GitHub release page
   \end{itemize}
 
 \end{block}
 \column{0.4\textwidth}
   \includegraphics[width=\linewidth]{request-ids-histogram}
-  use half side gaussian to get recent requests
+  Use half-side Gaussian to get recent requests
 \end{columns}
 \end{frame}
 \begin{frame}{OBS Data Extraction}
-\begin{block}{Privacy considerations}
+\begin{block}{Privacy Considerations}
 \begin{itemize}
-  \item Spec file is MIT license and content can be used
-  \item Changes file is also MIT license
-  \item \texttt{CHANGELOG} files fall under OSS license if accepted to \texttt{openSUSE:Factory}
-  \item github release page is the same licese as the source
+  \item Spec files use the MIT license; content can be freely used
+  \item Changes files also use the MIT license
+  \item \texttt{CHANGELOG} files fall under OSS licenses if accepted to \texttt{openSUSE:Factory}
+  \item GitHub release pages use the same license as the source
 \end{itemize}
 \end{block}
-\begin{block}{Personal information}
+\begin{block}{Personal Information}
   \begin{itemize}
-    \item Submitter name and email is removed from changes files
-    \item Reviewer isn't retrieved
-    \item Request is used as key but not used for training
+    \item Submitter name and email are removed from changes files
+    \item Reviewer information is not retrieved
+    \item Request IDs are used as keys but not for training
   \end{itemize}
 \end{block}
 \end{frame}
@@ -448,7 +448,8 @@ Upstream CHANGELOG missing on purpose, requests adds patch file
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Untrained Models: Fine Tuning is necessary}
+\section{Fine-Tuning \& Results}
+\begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
 Request: 1071207\\
 \textbf{small}
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
@@ -463,7 +464,7 @@ structured changelog for package pdsh 2.34:încreasing structured changelogging 
  -p1
 \end{lstlisting}
 \end{frame}
-\begin{frame}[fragile]{Untrained Models: Fine Tuning is necessary}
+\begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
 Request: 1111873\\
 \textbf{small}
 \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
@@ -479,7 +480,7 @@ Minor quality of life improvements seitens unserer contributors this release: co
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}{Fine Tuning Hyperparameters (Small Dataset)}
+\begin{frame}{Fine-Tuning Hyperparameters (Small Dataset)}
 \begin{columns}[t]
 \column{0.5\textwidth}
 \begin{block}{Common Parameters}
@@ -496,7 +497,7 @@ Minor quality of life improvements seitens unserer contributors this release: co
 \begin{itemize}
   \item \textbf{Architecture}: Ada Lovelace
   \item \textbf{VRAM}: 48 GB GDDR6 (ECC)
-  \item \textbf{CUDA Cores}: 18176
+  \item \textbf{CUDA Cores}: 18,176
   \item \textbf{TDP}: 300W
 \end{itemize}
 \end{block}
@@ -597,13 +598,13 @@ the-config-options-are-set.patch
 \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Fine-Tuned-Models: Reulsts Discussion}
+\begin{frame}[fragile]{Fine-Tuned Models: Results Discussion}
 \begin{columns}[t]
 \column{0.5\textwidth}
 \begin{block}{Good}
   \begin{itemize}
-    \item No unrelated gliberish
-    \item mostly reflects the changes
+    \item No unrelated gibberish
+    \item Mostly reflects the changes
   \end{itemize}
 \end{block}
 \begin{alertblock}{Ugly}
@@ -612,7 +613,7 @@ the-config-options-are-set.patch
     \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 Updated translations
 \end{lstlisting}
-    \item \textbf{Halucinations}:
+    \item \textbf{Hallucinations}:
     \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 Fixes build with newer version of SLE15
 \end{lstlisting}
@@ -620,10 +621,10 @@ Fixes build with newer version of SLE15
 \end{alertblock}
 \column{0.5\textwidth}
 \begin{block}{Overfitting}
-    Small model summarize list of languages to \texttt{Update translations}?
+    Small model summarizes a list of languages to \texttt{Updated translations}?
 \end{block}
 \begin{block}{Hallucination}
-Input doesn't contain any SLE15
+Input doesn't contain any SLE15:
     \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 create structured changelog for package pdsh 2.34:
 new files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']
@@ -638,20 +639,20 @@ changes in spec file:
   \item Bigger dataset needed
 \end{itemize}
 \end{frame}
-\begin{frame}[fragile]{Fine-Tuned-Models: Getting more data}
+\begin{frame}[fragile]{Fine-Tuned Models: Scaling Up the Data}
 \begin{columns}
 \column{0.65\textwidth}
 \vspace{0pt}
 \begin{block}{Problem}
 \begin{itemize}
     \item Collection of dataset took two days
-    \item Approximately only 1 of 10 requests go to \texttt{openSUSE:Factory} and is accepted
+    \item Approximately 1 in 10 requests go to \texttt{openSUSE:Factory} and are accepted
     \item \texttt{osc request list -P openSUSE:Factory -s accepted} times out
 \end{itemize}
 \end{block}
 \begin{block}{Solution}
 \begin{itemize}
-    \item Adrian Schröter gave me a list of \textbf{all} accepted requests
+    \item Adrian Schröter provided a list of \textbf{all} accepted requests
     \item Could easily create a list of 30,000 samples
 \end{itemize}
 \end{block}
@@ -694,7 +695,7 @@ t5-large & 12,468 & 23h 56m \\ \hline
 
 \end{frame}
 
-\begin{frame}[fragile]{Fine-Tuned Models: Results big dataset}
+\begin{frame}[fragile]{Fine-Tuned Models: Large Dataset Results}
 \begin{columns}[t]
 \column{0.5\textwidth}
 \textbf{Request 1111873 (gnome-music)}\\
@@ -741,21 +742,21 @@ the-config-options-are-set.patch
 \end{lstlisting}
 \end{columns}
 \end{frame}
-\begin{frame}[fragile]{Fine-Tuned Models: Discussion big datatset}
+\begin{frame}[fragile]{Fine-Tuned Models: Large Dataset Discussion}
 \begin{columns}
 \column{0.6\textwidth}
 \vspace{0pt}
 \begin{block}{Good}
     \begin{itemize}
         \item No hallucinations
-        \item small model includes to much text as it hasn't semnatic understanding
+        \item Small model includes too much text as it lacks semantic understanding
     \end{itemize}
 \end{block}
 \begin{block}{Bad}
-\textbf{base} and \textbf{large} model are too large to run on laptio > 1Gb
+\textbf{Base} and \textbf{large} models are too large to run on laptops (> 1 GB)
 \end{block}
 \begin{block}{Solution}
-use quantization to reduce model size and runtime
+Use quantization to reduce model size and runtime
 \end{block}
 
 \column{0.35\textwidth}
@@ -790,8 +791,9 @@ use quantization to reduce model size and runtime
 \end{columns}
 \end{frame}
 
+\section{Quantization \& Deployment}
 \begin{frame}{What is Quantization?}
-\begin{block}{Qunatization}
+\begin{block}{Quantization}
 Reduces numerical precision of weights from high precision (Float32) to lower (Int8).
 \end{block}
 
@@ -822,7 +824,7 @@ Reduces numerical precision of weights from high precision (Float32) to lower (I
 \begin{frame}{Quantization Implementation}
 \begin{columns}
 \column{0.6\textwidth}
-\begin{block}{CTranslate2 vs Ollama}
+\begin{block}{CTranslate2 vs. Ollama}
 \begin{itemize}
   \item \textbf{Ollama}: Optimized for decoder-only models (GPT, LLaMA)
   \item \textbf{CTranslate2}: Optimized for encoder-decoder models (T5, BART)
@@ -856,17 +858,17 @@ All models now fit in typical laptop RAM!
   \includegraphics[width=\linewidth]{softram}
 \end{columns}
 \end{frame}
-\begin{frame}{Wrapup}
+\begin{frame}{Wrap-up}
 \begin{block}{Model}
 \begin{itemize}
-    \item model and quantized models uploaded to hugging face
+    \item Model and quantized versions uploaded to Hugging Face
     \item \url{https://huggingface.co/mslacken/t5-finetune-changelog}
     \item FP32 quantized model which is full model for \texttt{ctranslate2}
 \end{itemize}
     \end{block}
 \begin{block}{Integration}
 \begin{itemize}
-\item simple python integration available at github
+\item Simple Python integration available on GitHub
 \item \url{https://github.com/openSUSE/changelog-gen}
 \item \url{obs://science:machinelearning/python-changelog-gen}
 \end{itemize}
@@ -878,7 +880,7 @@ All models now fit in typical laptop RAM!
 \begin{block}{Core Training Packages}
 \begin{itemize}
   \item \texttt{python-torch}
-  \item \texttt{python-transformers} - HuggingFace T5
+  \item \texttt{python-transformers} - Hugging Face T5
   \item \texttt{python-tokenizers} - Fast tokenization
   \item \texttt{python-safetensors} - Model serialization
 \end{itemize}
@@ -924,7 +926,7 @@ All essential packages available in Factory but without acceleration!
 \begin{tabular}{lr}
 \hline
 \textbf{Component} & \textbf{Size} \\ \hline
-Virtual Environment (pyTorch) & 5.7 GB \\
+Virtual Environment (PyTorch) & 5.7 GB \\
 Training Code \& Scripts & <100 MB \\
 Datasets (small + large) & 137 MB \\
 \hline
@@ -944,7 +946,7 @@ Current workspace & 5.6 GB \\ \hline
 \begin{frame}[fragile]
 \begin{columns}
 \column{0.5\textwidth}
-Thank your, for you attention!
+Thank you for your attention!
 \column{0.5\textwidth}
 \includegraphics[width=.8\linewidth]{vector-chameleon-213x300}
 \end{columns}
