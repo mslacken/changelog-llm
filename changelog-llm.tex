@@ -314,7 +314,7 @@ Large & 770M & 48 & 2.75 GB \\ \hline
     \item Choose a random number smaller than latest request
     \item Check if submission went to \texttt{openSUSE:Factory} and was accepted
     \item Identify \texttt{Source0}
-    \item Extract first 20 lines of \textt{CHANGELOG} \ldots
+    \item Extract first 20 lines of \texttt{CHANGELOG} \ldots
     \item For github links fetch github release page
   \end{itemize}
 
@@ -342,7 +342,7 @@ Large & 770M & 48 & 2.75 GB \\ \hline
 \end{block}
 \end{frame}
 \begin{frame}[fragile]{OBS Data Extraction - Example Update}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
  { "request_id": 1111873, "project": "GNOME:Factory", "package": "gnome-music", "version": "45.0",
     "changed_files": [ "gnome-music-45.0.tar.xz", "gnome-music.changes", "gnome-music.spec" ],
     "removed_files": [],
@@ -356,7 +356,7 @@ Large & 770M & 48 & 2.75 GB \\ \hline
 \end{lstlisting}
 \end{frame}
 \begin{frame}[fragile]{OBS Data Extraction - Example Update Rendered}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 <INPUT>
 create structured changelog for package gnome-music from 44.0 to 45.0:
 changelog:
@@ -386,7 +386,7 @@ changes in spec file:
 \end{lstlisting}
 \end{frame}
 \begin{frame}[fragile]{OBS Data Extraction - Example Patch File}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
   { "request_id": 1071207, "project": "network:utilities", "package": "pdsh", "version": "2.34",
     "changed_files": [ "pdsh.changes", "pdsh.spec" ],
     "removed_files": [],
@@ -402,7 +402,7 @@ changes in spec file:
 \end{frame}
 
 \begin{frame}[fragile]{OBS Data Extraction - Example Patch File Rendered}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 <INPUT>
 create structured changelog for package pdsh 2.34:
 new files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']
@@ -450,43 +450,56 @@ Upstream CHANGELOG missing on purpose, requests adds patch file
 \begin{frame}[fragile]{Untrained Models: Fine Tuning is necessary}
 Request: 1071207\\
 \textbf{small}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 -pdsh 2.34::-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch'] аеое о аи ереади в ил и рораии ирадиии орамителноо
 \end{lstlisting}
 \textbf{base}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
-structured changelog for package pdsh 2.34:încreasing structured changelogging for package create structured change log for package build pcsh pkg 2.34.34:Auffinden Sie neue files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']Währenden +%patch9 -p1: Add-call/slursm_install-this\end{lstlisting}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+structured changelog for package pdsh 2.34:încreasing structured changelogging for package create structured change log for package build pcsh pkg 2.34.34:Auffinden Sie neue files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']Währenden +%patch9 -p1: Add-call/slursm_install-this
 \end{lstlisting}
 \textbf{large}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
  -p1
 \end{lstlisting}
 \end{frame}
 \begin{frame}[fragile]{Untrained Models: Fine Tuning is necessary}
 Request: 1111873\\
 \textbf{small}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 Minor quality of life improvements seitens unserer contributors this release: comprised of the following: likewise: embodied and added translations: characterized by a re-written version of the gnome-music from 44.0 to 45.0: utilised changelog: assemble changelog for package gnomes-music between 44.0 and 45.0 : räte changelog - rätze changelog. rätsche -Source0: https://download.gnome.org/source
 \end{lstlisting}
 \textbf{base}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 :========= .tar.xz  .tr.xs căprès +Source0: https://download.gnome.org/sources/gnome-music/Retrouvez +==:   Marinus Schraal ==Hungarian==rätsel près +Retrouvez +Source1: httpswww.gno
 \end{lstlisting}
 \textbf{large}
-\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
 -music from 44.0 to 45.0: ======= erweisen erweisend erweisendlich Peter Deutscherweise Germanerweise Germangegenseitig erweiselich Germanerweise Englishgegenseitigerweise Englisherweiseerweise Englishgebührenpflichtig Germanerweise Polisherweise Polisherweise -Source0:  --music ==-music-music  erweise -erweise == =
 \end{lstlisting}
 \end{frame}
 
 \begin{frame}{Fine Tuning Hyperparameters}
-\begin{block}{Common Parameters Across All Models}
+\begin{columns}[t]
+\column{0.5\textwidth}
+\begin{block}{Common Parameters}
 \begin{itemize}
   \item \textbf{Optimizer}: AdaFactor
   \item \textbf{Learning rate scheduler}: Cosine
   \item \textbf{Warmup ratio}: 10\% of max steps
-  \item \textbf{Dataset}: $\sim$3,200 training samples
+  \item \textbf{Dataset}: $\sim$3,200 samples
 \end{itemize}
 \end{block}
+
+\column{0.5\textwidth}
+\begin{block}{NVIDIA L40 GPU}
+\begin{itemize}
+  \item \textbf{Architecture}: Ada Lovelace
+  \item \textbf{VRAM}: 48 GB GDDR6 (ECC)
+  \item \textbf{CUDA Cores}: 18176
+  \item \textbf{TDP}: 300W
+\end{itemize}
+\end{block}
+\end{columns}
 
 \begin{block}{Model-Specific Parameters}
 \centering
@@ -534,5 +547,166 @@ t5-large & 12,468 & 308h 56m \\ \hline
 \end{columns}
 
 \end{frame}
+
+\begin{frame}[fragile]{Fine-Tuned Model: First Results}
+\begin{columns}[t]
+\column{0.5\textwidth}
+\textbf{Request 1111873 (gnome-music)}\\
+\vspace{0.1cm}
+\textbf{t5-small:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Update to version 45.0:
+ + Minor quality of life improvements.
+ + Updated translations.
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-base:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Update to version 45.0:
+ + Minor quality of life improvements.
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-large:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Update to version 45.0:
+ + Minor quality of life improvements.
+\end{lstlisting}
+
+\column{0.5\textwidth}
+\textbf{Request 1071207 (pdsh patch)}\\
+\vspace{0.1cm}
+\textbf{t5-small:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Add add-call-to-slurm_init-this-makes-
+sure-the-config-options-are-set.patch
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-base:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Add add-call-to-slurm_init-this-makes-
+sure-the-config-options-are-set.patch
+ * Fixes build with newer version of SLE15
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-large:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Add-call-to-slurm_init-this-makes-sure-
+the-config-options-are-set.patch
+\end{lstlisting}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Fine-Tuned-Models: Reulsts Discussion}
+\begin{columns}[t]
+\column{0.5\textwidth}
+\begin{block}{Good}
+  \begin{itemize}
+    \item No unrelated gliberish
+    \item mostly reflects the changes
+  \end{itemize}
+\end{block}
+\begin{alertblock}{Ugly}
+  \begin{itemize}
+    \item \textbf{Overfitting}:
+    \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+Updated translations
+\end{lstlisting}
+    \item \textbf{Halucinations}:
+    \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+Fixes build with newer version of SLE15
+\end{lstlisting}
+  \end{itemize}
+\end{alertblock}
+\column{0.5\textwidth}
+\begin{block}{Overfitting}
+    Small model summarize list of languages to \texttt{Update translations}?
+\end{block}
+\begin{block}{Hallucination}
+Input doesn't contain any SLE15
+    \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+create structured changelog for package pdsh 2.34:
+new files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']
+changes in spec file:
++Patch9: Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch
+ +%patch9 -p1
+\end{lstlisting}
+\end{block}
+\end{columns}
+\begin{itemize}
+  \item Other samples show similar errors or are worse
+  \item Bigger dataset needed
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile]{Fine-Tuned-Models: Getting more data}
+\begin{columns}
+\column{0.65\textwidth}
+\vspace{0pt}
+\begin{block}{Problem}
+\begin{itemize}
+    \item Collection of dataset took two days
+    \item Approximately only 1 of 10 requests go to \texttt{openSUSE:Factory} and is accepted
+    \item \texttt{osc request list -P openSUSE:Factory -s accepted} times out
+\end{itemize}
+\end{block}
+\begin{block}{Solution}
+\begin{itemize}
+    \item Adrian Schröter gave me a list of \textbf{all} accepted requests
+    \item Could easily create a list of 30,000 samples
+\end{itemize}
+\end{block}
+\column{0.3\textwidth}
+\vspace{0pt}
+\includegraphics[width=.9\linewidth]{Geeko_Crunching_Numbers}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Fine-Tuned Models: Results big dataset}
+\begin{columns}[t]
+\column{0.5\textwidth}
+\textbf{Request 1111873 (gnome-music)}\\
+\vspace{0.1cm}
+\textbf{t5-small:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Update to version 45.0:
+ * Minor quality of life improvements
+ * Thanks to our contributors this release
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-base:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Update to version 45.0:
+ + Minor quality of life improvements.
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-large:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Update to version 45.0:
+ + Minor quality of life improvements.
+\end{lstlisting}
+
+\column{0.5\textwidth}
+\textbf{Request 1071207 (pdsh patch)}\\
+\vspace{0.1cm}
+\textbf{t5-small:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Add-call-to-slurm_init-this-makes-sure-
+the-config-options-are-set.patch
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-base:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Add Add-call-to-slurm_init-this-makes
+sure the configuration options are
+set.patch
+\end{lstlisting}
+\vspace{0.1cm}
+\textbf{t5-large:}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+- Add-call-to-slurm_init-this-makes-sure-
+the-config-options-are-set.patch
+\end{lstlisting}
+\end{columns}
+\end{frame}
+
 \end{document}
 
