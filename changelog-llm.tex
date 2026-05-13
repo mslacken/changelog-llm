@@ -6,6 +6,7 @@
 \usepackage{colortbl}
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,calc,arrows.meta}
+\usepackage{amssymb}
 \usepackage[scaled=.92]{helvet}
 %\renewcommand*\sfdefault{cmss}
 %\usepackage[sfmath]{kpfonts}
@@ -46,9 +47,9 @@
   \titlepage
 \end{frame}
 
-% \begin{frame}{Outline}
-%   \tableofcontents
-% \end{frame}
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
 
 \begin{frame}[fragile]{Quickstart}
 \begin{block}{Tumbelweed}
@@ -478,7 +479,7 @@ Minor quality of life improvements seitens unserer contributors this release: co
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}{Fine Tuning Hyperparameters}
+\begin{frame}{Fine Tuning Hyperparameters (Small Dataset)}
 \begin{columns}[t]
 \column{0.5\textwidth}
 \begin{block}{Common Parameters}
@@ -516,7 +517,7 @@ Batch sizes scaled inversely with model size due to memory constraints
 \end{alertblock}
 \end{frame}
 
-\begin{frame}{Training Results and Convergence}
+\begin{frame}{Training Results and Convergence (Small Dataset)}
 \begin{columns}
 \column{0.55\textwidth}
 \begin{block}{Training Loss Progression}
@@ -660,6 +661,39 @@ changes in spec file:
 \end{columns}
 \end{frame}
 
+\begin{frame}{Training Results and Convergence (Large Dataset)}
+\begin{columns}
+\column{0.55\textwidth}
+\begin{block}{Training Loss Progression}
+\centering
+\includegraphics[width=\linewidth]{training_loss_comparison_large}
+\end{block}
+
+\column{0.45\textwidth}
+\begin{block}{Training Summary}
+\centering
+\vspace{0.3cm}
+\begin{tabular}{l>{\ttfamily}r>{\ttfamily}r}
+\hline
+\textbf{Model} & \multicolumn{1}{c}{\textbf{Steps}} & \multicolumn{1}{c}{\textbf{Runtime}} \\ \hline
+t5-small & 2,080 &  1h 52m \\
+t5-base  & 2,496 &  4h 56m \\
+t5-large & 12,468 & 23h 56m \\ \hline
+\end{tabular}
+\vspace{0.5cm}
+\end{block}
+
+\begin{block}{Stopping Reason}
+\begin{itemize}
+  \item \textbf{t5-small}: Reached max epochs (10)
+  \item \textbf{t5-base}: Reached max epochs (8)
+  \item \textbf{t5-large}: Max steps reached (12)
+\end{itemize}
+\end{block}
+\end{columns}
+
+\end{frame}
+
 \begin{frame}[fragile]{Fine-Tuned Models: Results big dataset}
 \begin{columns}[t]
 \column{0.5\textwidth}
@@ -707,6 +741,213 @@ the-config-options-are-set.patch
 \end{lstlisting}
 \end{columns}
 \end{frame}
+\begin{frame}[fragile]{Fine-Tuned Models: Discussion big datatset}
+\begin{columns}
+\column{0.6\textwidth}
+\vspace{0pt}
+\begin{block}{Good}
+    \begin{itemize}
+        \item No hallucinations
+        \item small model includes to much text as it hasn't semnatic understanding
+    \end{itemize}
+\end{block}
+\begin{block}{Bad}
+\textbf{base} and \textbf{large} model are too large to run on laptio > 1Gb
+\end{block}
+\begin{block}{Solution}
+use quantization to reduce model size and runtime
+\end{block}
 
+\column{0.35\textwidth}
+\vspace{0pt}
+\begin{center}
+\textbf{Quantization}\\
+\vspace{0.3cm}
+\begin{tikzpicture}[scale=0.8]
+    % Floating point values (left side)
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] (f1) at (0, 3) {\small 3.14};
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] (f2) at (0, 2) {\small 2.87};
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] (f3) at (0, 1) {\small 0.42};
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] (f4) at (0, 0) {\small -1.23};
+
+    % Integer values (right side)
+    \node[circle, draw, fill=green!20, minimum size=0.8cm] (i1) at (3, 3) {\small 3};
+    \node[circle, draw, fill=green!20, minimum size=0.8cm] (i2) at (3, 2) {\small 3};
+    \node[circle, draw, fill=green!20, minimum size=0.8cm] (i3) at (3, 1) {\small 0};
+    \node[circle, draw, fill=green!20, minimum size=0.8cm] (i4) at (3, 0) {\small -1};
+
+    % Arrows
+    \draw[->, thick, blue!70] (f1) -- (i1);
+    \draw[->, thick, blue!70] (f2) -- (i2);
+    \draw[->, thick, blue!70] (f3) -- (i3);
+    \draw[->, thick, blue!70] (f4) -- (i4);
+
+    % Labels
+    \node[below] at (0, -0.5) {\tiny Float32};
+    \node[below] at (3, -0.5) {\tiny Int8};
+\end{tikzpicture}
+\end{center}
+\end{columns}
+\end{frame}
+
+\begin{frame}{What is Quantization?}
+\begin{block}{Qunatization}
+Reduces numerical precision of weights from high precision (Float32) to lower (Int8).
+\end{block}
+
+\begin{columns}[t]
+\column{0.5\textwidth}
+\begin{block}{Why It Works}
+\begin{itemize}
+  \item Neural networks are \textbf{over-parametrized}
+  \item Robust features tolerate small numerical errors
+  \item Weight values cluster
+  \item Activations follow predictable distributions
+\end{itemize}
+\end{block}
+
+\column{0.5\textwidth}
+\begin{block}{Benefits}
+\begin{itemize}
+  \item \textbf{Smaller size}: Float32 $\rightarrow$ Int8 = 4× reduction
+  \item \textbf{Faster inference}: Integer operations are faster
+  \item \textbf{Lower memory}: Fits on consumer hardware
+  \item \textbf{Minimal accuracy loss}: Usually <2\% degradation
+\end{itemize}
+\end{block}
+\end{columns}
+
+\end{frame}
+
+\begin{frame}{Quantization Implementation}
+\begin{columns}
+\column{0.6\textwidth}
+\begin{block}{CTranslate2 vs Ollama}
+\begin{itemize}
+  \item \textbf{Ollama}: Optimized for decoder-only models (GPT, LLaMA)
+  \item \textbf{CTranslate2}: Optimized for encoder-decoder models (T5, BART)
+  \item T5's bidirectional encoder requires specialized attention mechanisms
+\end{itemize}
+\end{block}
+
+\begin{block}{INT8 Quantization}
+\begin{itemize}
+  \item Float32 (4 bytes) $\rightarrow$ Int8 (1 byte)
+  \item \textbf{Result}: $\sim$4× smaller model size
+  \item \textbf{t5-base}: 892 MB $\rightarrow$ $\sim$220 MB
+  \item \textbf{t5-large}: 2.75 GB $\rightarrow$ $\sim$690 MB
+\end{itemize}
+\end{block}
+
+\column{0.35\textwidth}
+\begin{block}{Compression Results}
+\centering
+\vspace{0.2cm}
+\begin{tabular}{lr}
+\hline
+\textbf{Model} & \textbf{Size} \\ \hline
+t5-small & 60 MB \\
+t5-base & 220 MB \\
+t5-large & 690 MB \\ \hline
+\end{tabular}
+
+All models now fit in typical laptop RAM!
+\end{block}
+  \includegraphics[width=\linewidth]{softram}
+\end{columns}
+\end{frame}
+\begin{frame}{Wrapup}
+\begin{block}{Model}
+\begin{itemize}
+    \item model and quantized models uploaded to hugging face
+    \item \url{https://huggingface.co/mslacken/t5-finetune-changelog}
+    \item FP32 quantized model which is full model for \texttt{ctranslate2}
+\end{itemize}
+    \end{block}
+\begin{block}{Integration}
+\begin{itemize}
+\item simple python integration available at github
+\item \url{https://github.com/openSUSE/changelog-gen}
+\item \url{obs://science:machinelearning/python-changelog-gen}
+\end{itemize}
+\end{block}
+\end{frame}
+\begin{frame}{Used Software \& Availability}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{block}{Core Training Packages}
+\begin{itemize}
+  \item \texttt{python-torch}
+  \item \texttt{python-transformers} - HuggingFace T5
+  \item \texttt{python-tokenizers} - Fast tokenization
+  \item \texttt{python-safetensors} - Model serialization
+\end{itemize}
+\end{block}
+
+\begin{block}{Inference \& Deployment}
+\begin{itemize}
+  \item \texttt{ctranslate2} - Quantization \& fast inference
+\end{itemize}
+\end{block}
+
+\column{0.5\textwidth}
+\begin{block}{openSUSE:Factory Status}
+\centering
+\vspace{0.2cm}
+\begin{tabular}{lc}
+\hline
+\textbf{Package} & \textbf{Status} \\ \hline
+python-torch & \checkmark \\
+python-transformers & \checkmark \\
+python-tokenizers & \checkmark \\
+python-safetensors & \checkmark \\
+ctranslate2 & \checkmark \\
+\hline
+\end{tabular}
+\vspace{0.3cm}
+
+\texttt{python-changelog-gen}:\\
+\texttt{science:machinelearning}
+\end{block}
+
+\begin{alertblock}{Note}
+All essential packages available in Factory but without acceleration!
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Disk Space Requirements}
+\begin{columns}
+\column{0.55\textwidth}
+\begin{block}{Total Space Used: \textbf{37 GB}}
+\vspace{0.2cm}
+\begin{tabular}{lr}
+\hline
+\textbf{Component} & \textbf{Size} \\ \hline
+Virtual Environment (pyTorch) & 5.7 GB \\
+Training Code \& Scripts & <100 MB \\
+Datasets (small + large) & 137 MB \\
+\hline
+\multicolumn{2}{l}{\textit{Fine-tuned Models:}} \\
+Small dataset runs & 13 GB \\
+Large dataset runs & 13 GB \\
+Current workspace & 5.6 GB \\ \hline
+\end{tabular}
+\end{block}
+\column{0.45\textwidth}
+  \includegraphics[width=\linewidth]{ram_fry}
+
+
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{columns}
+\column{0.5\textwidth}
+Thank your, for you attention!
+\column{0.5\textwidth}
+\includegraphics[width=.8\linewidth]{vector-chameleon-213x300}
+\end{columns}
+\end{frame}
 \end{document}
 
