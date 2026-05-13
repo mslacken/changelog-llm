@@ -2,6 +2,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
+\usepackage{array}
 \usepackage{colortbl}
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,calc,arrows.meta}
@@ -303,6 +304,235 @@ Large & 770M & 48 & 2.75 GB \\ \hline
   \item The actual \texttt{.changes} file entries (our target)
 \end{itemize}
 \end{block}
+\end{frame}
+
+\begin{frame}{OBS Data Extraction}
+\begin{columns}
+\column{0.6\textwidth}
+\begin{block}{Naive approach}
+  \begin{itemize}
+    \item Choose a random number smaller than latest request
+    \item Check if submission went to \texttt{openSUSE:Factory} and was accepted
+    \item Identify \texttt{Source0}
+    \item Extract first 20 lines of \textt{CHANGELOG} \ldots
+    \item For github links fetch github release page
+  \end{itemize}
+
+\end{block}
+\column{0.4\textwidth}
+  \includegraphics[width=\linewidth]{request-ids-histogram}
+  use half side gaussian to get recent requests
+\end{columns}
+\end{frame}
+\begin{frame}{OBS Data Extraction}
+\begin{block}{Privacy considerations}
+\begin{itemize}
+  \item Spec file is MIT license and content can be used
+  \item Changes file is also MIT license
+  \item \texttt{CHANGELOG} files fall under OSS license if accepted to \texttt{openSUSE:Factory}
+  \item github release page is the same licese as the source
+\end{itemize}
+\end{block}
+\begin{block}{Personal information}
+  \begin{itemize}
+    \item Submitter name and email is removed from changes files
+    \item Reviewer isn't retrieved
+    \item Request is used as key but not used for training
+  \end{itemize}
+\end{block}
+\end{frame}
+\begin{frame}[fragile]{OBS Data Extraction - Example Update}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+ { "request_id": 1111873, "project": "GNOME:Factory", "package": "gnome-music", "version": "45.0",
+    "changed_files": [ "gnome-music-45.0.tar.xz", "gnome-music.changes", "gnome-music.spec" ],
+    "removed_files": [],
+    "added_files": [],
+    "spec_diff": "Name:           gnome-music\n-Version:        44.0\n+Version:        45.0\n Release:        0\n Summary:        Music Player for GNOME\n License:        LGPL-2.1-or-later AND SUSE-GPL-2.0-with-plugin-exception\n Group:          Productivity/Multimedia/Sound/Players\n URL:            https://www.gnome.org\n-Source0:        https://download.gnome.org/sources/gnome-music/44/%{name}-%{version}.tar.xz\n+Source0:        https://download.gnome.org/sources/gnome-music/45/%{name}-%{version}.tar.xz\n #PATCH-FIX-SLE  0001-gnome-music-use-python36.patch yfjiang@suse.com -- disable python 3.7 specific feature to allow gnome-music build and run on python 3.6 for SLE/Leap 15.4.\n Patch0:         0001-gnome-music-use-python36.patch",
+    "changes_diff": "+\n+- Update to version 45.0:\n+  + Minor quality of life improvements.\n+  + Updated translations.\n+\n - Update to version 44.0:",
+    "source_file": "gnome-music-45.0.tar.xz",
+    "archive_changelog": "Overview of changes in 45.0\n===========================\n\n• Minor quality of life improvements\n\nThanks to our contributors this release:\n Carlos Garnacho\n Jean Felder\n Harold Knowlden\n Marinus Schraal\n\nUpdated or added translations:\n Abkhazian\n Romanian\n Italian\n Turkish\n British English\n French\n Hungarian\n German\n Hebrew\n Ukrainian",
+    "url": "https://www.gnome.org",
+    "github_release_notes": "" },
+\end{lstlisting}
+\end{frame}
+\begin{frame}[fragile]{OBS Data Extraction - Example Update Rendered}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+<INPUT>
+create structured changelog for package gnome-music from 44.0 to 45.0:
+changelog:
+Overview of changes in 45.0
+ ===========================
+ • Minor quality of life improvements
+ Thanks to our contributors this release:
+ Carlos Garnacho
+ Jean Felder
+ Harold Knowlden
+ Marinus Schraal
+ Updated or added translations:
+ Abkhazian
+ [....]
+ Hebrew
+ Ukrainian
+changes in spec file:
+-Source0: https://download.gnome.org/sources/gnome-music/44/%<unk>name<unk>-%<unk>version<unk>.tar.xz
+ +Source0: https://download.gnome.org/sources/gnome-music/45/%<unk>name<unk>-%<unk>version<unk>.tar.xz
+</INPUT>
+--------------------------------------------------------------------------------
+<TARGET>
+- Update to version 45.0:
+  + Minor quality of life improvements.
+  + Updated translations.
+</TARGET>
+\end{lstlisting}
+\end{frame}
+\begin{frame}[fragile]{OBS Data Extraction - Example Patch File}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+  { "request_id": 1071207, "project": "network:utilities", "package": "pdsh", "version": "2.34",
+    "changed_files": [ "pdsh.changes", "pdsh.spec" ],
+    "removed_files": [],
+    "added_files": [ "Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch" ],
+    "spec_diff": "Patch6:         fail-fast-on-ssh-errors-or-non-zero-return-code.patch\n Patch7:         doc-fast-fail-update.patch\n Patch8:         Hack-to-work-around-a-generic-type-name-breakage-introduced-by-latest-Slurm.patch\n+Patch9:         Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch\n %description\n Pdsh is a multithreaded remote shell client which executes commands on\n %patch6 -p1\n %patch7 -p1\n %patch8 -p1\n+%patch9 -p1\n %build\n export CFLAGS=\"%{optflags} -fno-strict-aliasing\"",
+    "changes_diff": "+\n+- Fix slurm plugin: make sure slurm_init() is called before using\n+  the Slurm API. This has been the case since version 20.11 (bsc#1209216).\n+  Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch\n+\n - Hack-to-work-around-a-generic-type-name-breakage-introduced-by-latest-Slurm.patch",
+    "source_file": "pdsh-2.34.tar.gz",
+    "archive_changelog": "This file describes changes in recent versions of pdsh. It primarily\ndocuments those changes that are of interest to users and admins.\n\n* Changes in pdsh-2.34 (2020-01-07)\n===================================\n -- Fix for output corruption with no newlines (#114)\n -- pipecmd: fix result check error handling (Dylan Simon)\n -- slurm: workaround slurm export of internal List interfaces\n -- readline: add application name as argv[0] (#112)\n -- Fix errors from lgtm.com scan\n\n* Changes in pdsh-2.33 (2017-06-28)\n===================================\n -- Fix segfault and build issues on Mac OSX (#95)\n -- Always pass RTLD_GLOBAL to dlopen(3) of modules. Fixes missing symbol\n     errors from modules using libraries that also use dlopen() (e.g.\n     nodeupdown, slurm)\n\n* Changes in pdsh-2.32 (2017-06-22)\n===================================\n -- Autotools update\n -- Switch to dlopen(3)/dlsym(3) instead of using libltdl",
+    "url": "http://pdsh.googlecode.com/",
+    "github_release_notes": ""
+  },
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{OBS Data Extraction - Example Patch File Rendered}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+<INPUT>
+create structured changelog for package pdsh 2.34:
+new files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']
+changes in spec file:
++Patch9: Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch
+ +%patch9 -p1
+</INPUT>
+--------------------------------------------------------------------------------
+<TARGET>
+- Fix slurm plugin: make sure slurm_init() is called before using
+  the Slurm API. This has been the case since version 20.11 (bsc#1209216).
+  Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch
+</TARGET>
+\end{lstlisting}
+\begin{block}{Note}
+Upstream CHANGELOG missing on purpose, requests adds patch file
+\end{block}
+\end{frame}
+
+\begin{frame}{Data Preprocessing \& Tokenization}
+\begin{block}{Special Token Handling}
+\begin{itemize}
+  \item Newline character (\texttt{\textbackslash n}) added as special token
+  \item Preserves structure in multi-line changelogs
+\end{itemize}
+\end{block}
+
+\begin{block}{Sequence Length Limits}
+\begin{itemize}
+  \item \textbf{Input}: Maximum 1024 tokens (spec diffs + changelog)
+  \item \textbf{Target}: Maximum 512 tokens (generated changelog entry)
+  \item Sequences exceeding limits are truncated
+\end{itemize}
+\end{block}
+
+\begin{block}{Padding Strategy}
+\begin{itemize}
+  \item Dynamic padding: sequences padded to \texttt{longest} in batch
+  \item Padding tokens in labels replaced with $-100$
+  \item Loss function ignores $-100$ (no gradient from padding)
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Untrained Models: Fine Tuning is necessary}
+Request: 1071207\\
+\textbf{small}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+-pdsh 2.34::-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch'] аеое о аи ереади в ил и рораии ирадиии орамителноо
+\end{lstlisting}
+\textbf{base}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+structured changelog for package pdsh 2.34:încreasing structured changelogging for package create structured change log for package build pcsh pkg 2.34.34:Auffinden Sie neue files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']Währenden +%patch9 -p1: Add-call/slursm_install-this\end{lstlisting}
+\end{lstlisting}
+\textbf{large}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+ -p1
+\end{lstlisting}
+\end{frame}
+\begin{frame}[fragile]{Untrained Models: Fine Tuning is necessary}
+Request: 1111873\\
+\textbf{small}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+Minor quality of life improvements seitens unserer contributors this release: comprised of the following: likewise: embodied and added translations: characterized by a re-written version of the gnome-music from 44.0 to 45.0: utilised changelog: assemble changelog for package gnomes-music between 44.0 and 45.0 : räte changelog - rätze changelog. rätsche -Source0: https://download.gnome.org/source
+\end{lstlisting}
+\textbf{base}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+:========= .tar.xz  .tr.xs căprès +Source0: https://download.gnome.org/sources/gnome-music/Retrouvez +==:   Marinus Schraal ==Hungarian==rätsel près +Retrouvez +Source1: httpswww.gno
+\end{lstlisting}
+\textbf{large}
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
+-music from 44.0 to 45.0: ======= erweisen erweisend erweisendlich Peter Deutscherweise Germanerweise Germangegenseitig erweiselich Germanerweise Englishgegenseitigerweise Englisherweiseerweise Englishgebührenpflichtig Germanerweise Polisherweise Polisherweise -Source0:  --music ==-music-music  erweise -erweise == =
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Fine Tuning Hyperparameters}
+\begin{block}{Common Parameters Across All Models}
+\begin{itemize}
+  \item \textbf{Optimizer}: AdaFactor
+  \item \textbf{Learning rate scheduler}: Cosine
+  \item \textbf{Warmup ratio}: 10\% of max steps
+  \item \textbf{Dataset}: $\sim$3,200 training samples
+\end{itemize}
+\end{block}
+
+\begin{block}{Model-Specific Parameters}
+\centering
+\begin{tabular}{lrrr}
+\hline
+\textbf{Parameter} & \textbf{t5-small} & \textbf{t5-base} & \textbf{t5-large} \\ \hline
+Batch Size & 30 & 10 & 3 \\
+Max Steps & 21,000 & 64,000 & 12,468 \\
+Max Epochs & 200 & 200 & 12 \\
+\end{tabular}
+\end{block}
+\begin{alertblock}{Note}
+Batch sizes scaled inversely with model size due to memory constraints
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Training Results and Convergence}
+\begin{columns}
+\column{0.55\textwidth}
+\begin{block}{Training Loss Progression}
+\centering
+\includegraphics[width=\linewidth]{training_loss_comparison}
+\end{block}
+
+\column{0.45\textwidth}
+\begin{block}{Training Summary}
+\centering
+\vspace{0.3cm}
+\begin{tabular}{l>{\ttfamily}r>{\ttfamily}r}
+\hline
+\textbf{Model} & \multicolumn{1}{c}{\textbf{Steps}} & \multicolumn{1}{c}{\textbf{Runtime}} \\ \hline
+t5-small & 14,100 &  13h 08m \\
+t5-base  & 12,800 &  14h 23m \\
+t5-large & 12,468 & 308h 56m \\ \hline
+\end{tabular}
+\vspace{0.5cm}
+\end{block}
+
+\begin{block}{Stopping Reason}
+\begin{itemize}
+  \item \textbf{t5-small/base}: Early stopping (patience=5)
+  \item \textbf{t5-large}: Max steps reached
+\end{itemize}
+\end{block}
+\end{columns}
+
 \end{frame}
 \end{document}
 
