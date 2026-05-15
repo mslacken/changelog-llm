@@ -1,0 +1,39 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.lof
+*.lot
+
+# Build directory
+build/
+
+# Temporary files
+*.tmp
+*~
+*.swp
+*.swo
+*-converted-to.pdf
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor-specific
+.vscode/
+.idea/
+*.sublime-*
+
+# Output that should be regenerated
+README.md
