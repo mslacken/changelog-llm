@@ -86,4 +86,6 @@ Short introduction to automated changelog generation using fine-tuned T5 models
 
 ![Screenshot](build/images/changelog-llm-42.png)
 
+![Screenshot](build/images/changelog-llm-43.png)
+
 ([PDF](build/changelog-llm.pdf))
