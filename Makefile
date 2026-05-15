@@ -12,7 +12,8 @@ all: documents screenshots
 documents: $(DOCUMENTS)
 
 $(BUILDDIR)/%.pdf: %.tex | $(BUILDDIR)
-	xelatex -interaction=nonstopmode -output-directory=$(BUILDDIR) $<
+	lualatex -interaction=nonstopmode -output-directory=$(BUILDDIR) $<
+	lualatex -interaction=nonstopmode -output-directory=$(BUILDDIR) $<
 	echo "#  Changelog LLM slides" > README.md
 	echo >> README.md
 	echo "Short introduction to automated changelog generation using fine-tuned T5 models" >> README.md

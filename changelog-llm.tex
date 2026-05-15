@@ -74,6 +74,18 @@
 \end{frame}
 
 \section{Introduction}
+{
+\setbeamercolor{background canvas}{bg=SUSEPine}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{title page header}
+    \usebeamerfont{section page}\insertsection\par
+  \end{beamercolorbox}
+  \vfill
+\end{frame}
+}
+
 \begin{frame}{Motivation}
   \begin{block}{Changelogs in Open Build Service}
     \begin{itemize}
@@ -84,14 +96,14 @@
   \end{block}
   \begin{block}{The Opportunity}
     \begin{itemize}
-      \item Accepted requests to \texttt{openSUSE:Factory} should all be in the right format
+      \item Accepted requests to \texttt{openSUSE:Factory} \textbf{are} the right format
       \item Submission requests contain the necessary information
       \item Perfect candidate for LLM automation
     \end{itemize}
   \end{block}
 \end{frame}
 
-\begin{frame}{Why Fine-tune a Local LLM?}
+\begin{frame}{Why use a Local LLM?}
 \begin{columns}
 \column{0.6\textwidth}
 \begin{block}{Existing Tools}
@@ -103,8 +115,9 @@
 \begin{block}{Advantages}
 \begin{itemize}
   \item \textbf{Hype Train}
-  \item Pick up semantic changes (e.g., avoiding mentions of Apple-specific changes)
+  \item Pick up semantic changes (e.g., avoid mention Apple-specific changes)
   \item Can be run completely locally, handling embargoed changes
+  \item no information leak to cloud models
 \end{itemize}
 \end{block}
 \column{0.3\textwidth}
@@ -112,10 +125,18 @@
 \end{columns}
 \end{frame}
 
-\section{T5 Model}
+
 \begin{frame}{Which Model to Choose?}
 \begin{columns}
-\column{0.6\textwidth}
+\column{0.8\textwidth}
+\begin{block}{Why Fine-Tune Instead of Training from Scratch?}
+\begin{itemize}
+    \item Pre-trained models understand language structure
+    \item Training from scratch requires massive datasets (billions of tokens)
+    \item Fine-tuning is computationally cheaper and faster
+    \item Specializes existing knowledge for our specific task
+\end{itemize}
+\end{block}
 \begin{block}{Constraints}
 \begin{itemize}
     \item Model must be small (around $1\text{ GB}$)
@@ -124,10 +145,23 @@
     \item Transformer-based and not a GPT model
 \end{itemize}
 \end{block}
-\column{0.3\textwidth}
+\column{0.2\textwidth}
   \includegraphics[width=\linewidth]{Thinking Chameleon}
 \end{columns}
 \end{frame}
+
+\section{T5 Model}
+{
+\setbeamercolor{background canvas}{bg=SUSEPine}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{title page header}
+    \usebeamerfont{section page}\insertsection\par
+  \end{beamercolorbox}
+  \vfill
+\end{frame}
+}
 
 \begin{frame}{Encoder-Decoder vs. Decoder-Only}
 \begin{block}{Encoder-Decoder: T5, BART, mT5}
@@ -240,6 +274,181 @@ T5 can \textbf{read all input first}, then generate. GPT processes input and out
 \end{tikzpicture}
 \end{columns}
 \end{frame}
+
+\begin{frame}{Attention Mechanisms: Full vs. Masked}
+\definecolor{attentiongreen}{RGB}{48, 186, 120}
+\definecolor{attentiongray}{RGB}{200, 200, 200}
+\begin{columns}
+\column{0.5\textwidth}
+\centering
+\textbf{Full Attention (T5 Encoder)}\\
+\vspace{0.3cm}
+\begin{tikzpicture}[scale=0.55]
+  % Fill cells with varying green intensity, normalized per row
+  \foreach \i in {0,...,7} {
+    % Generate 8 random values for this row
+    \pgfmathsetmacro{\vala}{random(20,100)}
+    \pgfmathsetmacro{\valb}{random(20,100)}
+    \pgfmathsetmacro{\valc}{random(20,100)}
+    \pgfmathsetmacro{\vald}{random(20,100)}
+    \pgfmathsetmacro{\vale}{random(20,100)}
+    \pgfmathsetmacro{\valf}{random(20,100)}
+    \pgfmathsetmacro{\valg}{random(20,100)}
+    \pgfmathsetmacro{\valh}{random(20,100)}
+    \pgfmathsetmacro{\rowsum}{\vala+\valb+\valc+\vald+\vale+\valf+\valg+\valh}
+
+    % Normalize and draw cells
+    \pgfmathsetmacro{\norma}{\vala/\rowsum}
+    \pgfmathsetmacro{\normaintensity}{\norma*100}
+    \fill[attentiongreen!\normaintensity!white] (0*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (0*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\norma}};
+
+    \pgfmathsetmacro{\normb}{\valb/\rowsum}
+    \pgfmathsetmacro{\normbintensity}{\normb*100}
+    \fill[attentiongreen!\normbintensity!white] (1*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (1*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normb}};
+
+    \pgfmathsetmacro{\normc}{\valc/\rowsum}
+    \pgfmathsetmacro{\normcintensity}{\normc*100}
+    \fill[attentiongreen!\normcintensity!white] (2*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (2*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normc}};
+
+    \pgfmathsetmacro{\normd}{\vald/\rowsum}
+    \pgfmathsetmacro{\normdintensity}{\normd*100}
+    \fill[attentiongreen!\normdintensity!white] (3*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (3*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normd}};
+
+    \pgfmathsetmacro{\norme}{\vale/\rowsum}
+    \pgfmathsetmacro{\normeintensity}{\norme*100}
+    \fill[attentiongreen!\normeintensity!white] (4*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (4*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\norme}};
+
+    \pgfmathsetmacro{\normf}{\valf/\rowsum}
+    \pgfmathsetmacro{\normfintensity}{\normf*100}
+    \fill[attentiongreen!\normfintensity!white] (5*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (5*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normf}};
+
+    \pgfmathsetmacro{\normg}{\valg/\rowsum}
+    \pgfmathsetmacro{\normgintensity}{\normg*100}
+    \fill[attentiongreen!\normgintensity!white] (6*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (6*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normg}};
+
+    \pgfmathsetmacro{\normh}{\valh/\rowsum}
+    \pgfmathsetmacro{\normhintensity}{\normh*100}
+    \fill[attentiongreen!\normhintensity!white] (7*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (7*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normh}};
+  }
+
+  % Redraw grid on top
+  \draw[step=0.7cm,black,thin] (0,0) grid (5.6,5.6);
+
+  % Token labels (bottom) - rotated 90 degrees
+  \node[font=\scriptsize, rotate=90, anchor=east] at (0.35, -0.15) {create};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (1.05, -0.15) {log};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (1.75, -0.15) {for};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (2.45, -0.15) {pkg};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (3.15, -0.15) {gnome};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (3.85, -0.15) {music};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (4.55, -0.15) {44};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (5.25, -0.15) {45};
+
+  % Token labels (left side) - reading top to bottom
+  \node[font=\scriptsize, anchor=east] at (-0.15, 5.25) {create};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 4.55) {log};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 3.85) {for};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 3.15) {pkg};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 2.45) {gnome};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 1.75) {music};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 1.05) {44};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 0.35) {45};
+\end{tikzpicture}
+
+\vspace{0.2cm}
+{\small All tokens considered}
+
+\column{0.5\textwidth}
+\centering
+\textbf{Masked Attention (GPT)}\\
+\vspace{0.3cm}
+\begin{tikzpicture}[scale=0.55]
+  % Fill cells - lower triangular (causal masking), normalized per row
+  \foreach \i in {0,...,7} {
+    \pgfmathtruncatemacro{\row}{7-\i}
+    \pgfmathtruncatemacro{\numallowed}{\row+1}
+
+    % Generate random values for unmasked cells
+    \pgfmathsetmacro{\mzero}{random(20,100)}
+    \pgfmathsetmacro{\mone}{(\numallowed>1) ? random(20,100) : 0}
+    \pgfmathsetmacro{\mtwo}{(\numallowed>2) ? random(20,100) : 0}
+    \pgfmathsetmacro{\mthree}{(\numallowed>3) ? random(20,100) : 0}
+    \pgfmathsetmacro{\mfour}{(\numallowed>4) ? random(20,100) : 0}
+    \pgfmathsetmacro{\mfive}{(\numallowed>5) ? random(20,100) : 0}
+    \pgfmathsetmacro{\msix}{(\numallowed>6) ? random(20,100) : 0}
+    \pgfmathsetmacro{\mseven}{(\numallowed>7) ? random(20,100) : 0}
+    \pgfmathsetmacro{\msum}{\mzero+\mone+\mtwo+\mthree+\mfour+\mfive+\msix+\mseven}
+
+    % Draw row 0
+    \pgfmathsetmacro{\normval}{\mzero/\msum}
+    \pgfmathsetmacro{\intensity}{\normval*100}
+    \fill[attentiongreen!\intensity!white] (0*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+    \node[font=\fontsize{3}{4}\selectfont] at (0*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normval}};
+
+    % Draw remaining cells
+    \foreach \j in {1,...,7} {
+      \pgfmathtruncatemacro{\col}{\j}
+      \ifnum\col>\row
+        \fill[attentiongray] (\j*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+      \else
+        \ifnum\j=1 \pgfmathsetmacro{\rawval}{\mone} \fi
+        \ifnum\j=2 \pgfmathsetmacro{\rawval}{\mtwo} \fi
+        \ifnum\j=3 \pgfmathsetmacro{\rawval}{\mthree} \fi
+        \ifnum\j=4 \pgfmathsetmacro{\rawval}{\mfour} \fi
+        \ifnum\j=5 \pgfmathsetmacro{\rawval}{\mfive} \fi
+        \ifnum\j=6 \pgfmathsetmacro{\rawval}{\msix} \fi
+        \ifnum\j=7 \pgfmathsetmacro{\rawval}{\mseven} \fi
+        \pgfmathsetmacro{\normval}{\rawval/\msum}
+        \pgfmathsetmacro{\intensity}{\normval*100}
+        \fill[attentiongreen!\intensity!white] (\j*0.7, \i*0.7) rectangle ++(0.7, 0.7);
+        \node[font=\fontsize{3}{4}\selectfont] at (\j*0.7+0.35, \i*0.7+0.35) {\pgfmathprintnumber[fixed,precision=2]{\normval}};
+      \fi
+    }
+  }
+
+  % Redraw grid on top
+  \draw[step=0.7cm,black,thin] (0,0) grid (5.6,5.6);
+
+  % Token labels (bottom) - rotated 90 degrees
+  \node[font=\scriptsize, rotate=90, anchor=east] at (0.35, -0.15) {create};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (1.05, -0.15) {log};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (1.75, -0.15) {for};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (2.45, -0.15) {pkg};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (3.15, -0.15) {gnome};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (3.85, -0.15) {music};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (4.55, -0.15) {44};
+  \node[font=\scriptsize, rotate=90, anchor=east] at (5.25, -0.15) {45};
+
+  % Token labels (left side) - reading top to bottom
+  \node[font=\scriptsize, anchor=east] at (-0.15, 5.25) {create};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 4.55) {log};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 3.85) {for};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 3.15) {pkg};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 2.45) {gnome};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 1.75) {music};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 1.05) {44};
+  \node[font=\scriptsize, anchor=east] at (-0.15, 0.35) {45};
+\end{tikzpicture}
+
+\vspace{0.2cm}
+{\small Only previous tokens considred}
+
+\end{columns}
+
+\vspace{0.3cm}
+\small
+Numbers show attention weights (sum to 1.0 per row)\\
+Darker green = stronger attention.
+\end{frame}
+
 \begin{frame}{T5: Origins and History}
 \begin{block}{The T5 Paper (2019) by Google}
 \begin{itemize}
@@ -295,6 +504,18 @@ Large & 770M & 48 & 2.75 GB \\ \hline
 \end{frame}
 
 \section{Data Collection Pipeline}
+{
+\setbeamercolor{background canvas}{bg=SUSEPine}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{title page header}
+    \usebeamerfont{section page}\insertsection\par
+  \end{beamercolorbox}
+  \vfill
+\end{frame}
+}
+
 \begin{frame}[fragile]{OBS Data Extraction}
 \begin{block}{What data do we need?}
 \begin{itemize}
@@ -423,6 +644,52 @@ Upstream CHANGELOG missing on purpose, requests adds patch file
 \end{block}
 \end{frame}
 
+\begin{frame}{What is Tokenization?}
+\begin{columns}
+\column{0.5\textwidth}
+\begin{block}{Tokenization}
+Converts text into numerical representations that models can process.
+\end{block}
+
+\begin{block}{How It Works}
+\begin{itemize}
+  \item Text split into subword units (tokens)
+  \item Each token mapped to unique ID
+  \item Vocabulary built from training corpus
+  \item Unknown words broken into known subwords
+\end{itemize}
+\end{block}
+
+\column{0.5\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.9, every node/.style={font=\sffamily\small}]
+  % Input text
+  \node[draw, rounded corners, fill=blue!10, text width=5cm, align=center] (text) at (0,0)
+    {\texttt{"Update to version 45.0"}};
+
+  % Arrow down
+  \draw[->, thick] (text.south) -- ++(0,-0.5) node[midway, right] {\tiny Tokenize};
+
+  % Tokens
+  \node[draw, rounded corners, fill=green!10, text width=5cm, align=center] (tokens) at (0,-2)
+    {\texttt{["Update", "to", "version", "45", ".", "0"]}};
+
+  % Arrow down
+  \draw[->, thick] (tokens.south) -- ++(0,-0.5) node[midway, right] {\tiny Map to IDs};
+
+  % Token IDs
+  \node[draw, rounded corners, fill=orange!10, text width=5cm, align=center] (ids) at (0,-4)
+    {\texttt{[5974, 12, 988, 1902, 5, 209]}};
+
+  % Example of subword tokenization
+  \node[draw, rounded corners, fill=yellow!10, text width=5cm, align=left, font=\sffamily\tiny] (subword) at (0,-5.5)
+    {Subword example:\\
+    \texttt{"changelog" $\rightarrow$ ["change", "log"]}\\
+    \texttt{"updating" $\rightarrow$ ["updat", "ing"]}};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
 \begin{frame}{Data Preprocessing \& Tokenization}
 \begin{block}{Special Token Handling}
 \begin{itemize}
@@ -449,21 +716,18 @@ Upstream CHANGELOG missing on purpose, requests adds patch file
 \end{frame}
 
 \section{Fine-Tuning \& Results}
-\begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
-Request: 1071207\\
-\textbf{small}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
--pdsh 2.34::-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch'] аеое о аи ереади в ил и рораии ирадиии орамителноо
-\end{lstlisting}
-\textbf{base}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
-structured changelog for package pdsh 2.34:încreasing structured changelogging for package create structured change log for package build pcsh pkg 2.34.34:Auffinden Sie neue files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']Währenden +%patch9 -p1: Add-call/slursm_install-this
-\end{lstlisting}
-\textbf{large}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
- -p1
-\end{lstlisting}
+{
+\setbeamercolor{background canvas}{bg=SUSEPine}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{title page header}
+    \usebeamerfont{section page}\insertsection\par
+  \end{beamercolorbox}
+  \vfill
 \end{frame}
+}
+
 \begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
 Request: 1111873\\
 \textbf{small}
@@ -480,6 +744,22 @@ Minor quality of life improvements seitens unserer contributors this release: co
 \end{lstlisting}
 \end{frame}
 
+\begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
+Request: 1071207\\
+\textbf{small}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+-pdsh 2.34::-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch'] аеое о аи ереади в ил и рораии ирадиии орамителноо
+\end{lstlisting}
+\textbf{base}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+structured changelog for package pdsh 2.34:încreasing structured changelogging for package create structured change log for package build pcsh pkg 2.34.34:Auffinden Sie neue files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']Währenden +%patch9 -p1: Add-call/slursm_install-this
+\end{lstlisting}
+\textbf{large}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+ -p1
+\end{lstlisting}
+\end{frame}
+
 \begin{frame}{Fine-Tuning Hyperparameters (Small Dataset)}
 \begin{columns}[t]
 \column{0.5\textwidth}
@@ -487,7 +767,7 @@ Minor quality of life improvements seitens unserer contributors this release: co
 \begin{itemize}
   \item \textbf{Optimizer}: AdaFactor
   \item \textbf{Learning rate scheduler}: Cosine
-  \item \textbf{Warmup ratio}: 10\% of max steps
+  \item \textbf{Evaluation Split}: 10\%
   \item \textbf{Dataset}: $\sim$3,200 samples
 \end{itemize}
 \end{block}
@@ -792,6 +1072,18 @@ Use quantization to reduce model size and runtime
 \end{frame}
 
 \section{Quantization \& Deployment}
+{
+\setbeamercolor{background canvas}{bg=SUSEPine}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{title page header}
+    \usebeamerfont{section page}\insertsection\par
+  \end{beamercolorbox}
+  \vfill
+\end{frame}
+}
+
 \begin{frame}{What is Quantization?}
 \begin{block}{Quantization}
 Reduces numerical precision of weights from high precision (Float32) to lower (Int8).
