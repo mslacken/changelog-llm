@@ -105,30 +105,28 @@
 
 \begin{frame}{Why use a Local LLM?}
 \begin{columns}
-\column{0.6\textwidth}
+\column{0.7\textwidth}
 \begin{block}{Existing Tools}
 \begin{itemize}
   \item Existing tools can do the same
   \item Cannot capture changes to \texttt{.spec} or \texttt{\_multibuild} files
 \end{itemize}
 \end{block}
+\column{0.2\textwidth}
+  \includegraphics[width=\linewidth]{Thought Train}
+\end{columns}
 \begin{block}{Advantages}
 \begin{itemize}
   \item \textbf{Hype Train}
-  \item Pick up semantic changes (e.g., avoid mentioning Apple-specific changes)
-  \item Can be run completely locally, handling embargoed changes
+  \item Pick up semantic changes (e.g., avoid Apple-specific changes)
+  \item Runs completely locally, handling embargoed changes
   \item No information leak to cloud models
 \end{itemize}
 \end{block}
-\column{0.3\textwidth}
-  \includegraphics[width=\linewidth]{Thought Train}
-\end{columns}
 \end{frame}
 
 
 \begin{frame}{Which Model to Choose?}
-\begin{columns}
-\column{0.8\textwidth}
 \begin{block}{Why Fine-Tune Instead of Training from Scratch?}
 \begin{itemize}
     \item Pre-trained models understand language structure
@@ -137,6 +135,8 @@
     \item Specializes existing knowledge for our specific task
 \end{itemize}
 \end{block}
+\begin{columns}
+\column{0.8\textwidth}
 \begin{block}{Constraints}
 \begin{itemize}
     \item Model must be small (around $1\text{ GB}$)
