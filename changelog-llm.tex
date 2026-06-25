@@ -37,6 +37,34 @@
 
 \lstset{style=mystyle}
 
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{backcolour},
+    literate=
+     *{0}{{{\color{codegreen}0}}}{1}
+      {1}{{{\color{codegreen}1}}}{1}
+      {2}{{{\color{codegreen}2}}}{1}
+      {3}{{{\color{codegreen}3}}}{1}
+      {4}{{{\color{codegreen}4}}}{1}
+      {5}{{{\color{codegreen}5}}}{1}
+      {6}{{{\color{codegreen}6}}}{1}
+      {7}{{{\color{codegreen}7}}}{1}
+      {8}{{{\color{codegreen}8}}}{1}
+      {9}{{{\color{codegreen}9}}}{1}
+      {:}{{{\color{codegray}{:}}}}{1}
+      {,}{{{\color{codegray}{,}}}}{1}
+      {\{}{{{\color{codepurple}{\{}}}}{1}
+      {\}}{{{\color{codepurple}{\}}}}}{1}
+      {[}{{{\color{codepurple}{[}}}}{1}
+      {]}{{{\color{codepurple}{]}}}}{1},
+}
 \title{Leveraging Local LLMs for\\Automated Changelog Generation}
 \author{Christian Goll <\texttt{cgoll@suse.com}>}
 \date{\today}
@@ -564,7 +592,7 @@ Large & 770M & 48 & 2.75 GB \\ \hline
 \end{block}
 \end{frame}
 \begin{frame}[fragile]{OBS Data Extraction - Example Update}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
  { "request_id": 1111873, "project": "GNOME:Factory", "package": "gnome-music", "version": "45.0",
     "changed_files": [ "gnome-music-45.0.tar.xz", "gnome-music.changes", "gnome-music.spec" ],
     "removed_files": [],
@@ -578,7 +606,7 @@ Large & 770M & 48 & 2.75 GB \\ \hline
 \end{lstlisting}
 \end{frame}
 \begin{frame}[fragile]{OBS Data Extraction - Example Update Rendered}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
 <INPUT>
 create structured changelog for package gnome-music from 44.0 to 45.0:
 changelog:
@@ -608,7 +636,7 @@ changes in spec file:
 \end{lstlisting}
 \end{frame}
 \begin{frame}[fragile]{OBS Data Extraction - Example Patch File}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
   { "request_id": 1071207, "project": "network:utilities", "package": "pdsh", "version": "2.34",
     "changed_files": [ "pdsh.changes", "pdsh.spec" ],
     "removed_files": [],
@@ -624,7 +652,7 @@ changes in spec file:
 \end{frame}
 
 \begin{frame}[fragile]{OBS Data Extraction - Example Patch File Rendered}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[language=json, basicstyle=\ttfamily\tiny]
 <INPUT>
 create structured changelog for package pdsh 2.34:
 new files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']
@@ -731,15 +759,15 @@ Converts text into numerical representations that models can process.
 \begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
 Request: 1111873\\
 \textbf{small}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 Minor quality of life improvements seitens unserer contributors this release: comprised of the following: likewise: embodied and added translations: characterized by a re-written version of the gnome-music from 44.0 to 45.0: utilised changelog: assemble changelog for package gnomes-music between 44.0 and 45.0 : räte changelog - rätze changelog. rätsche -Source0: https://download.gnome.org/source
 \end{lstlisting}
 \textbf{base}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 :========= .tar.xz  .tr.xs căprès +Source0: https://download.gnome.org/sources/gnome-music/Retrouvez +==:   Marinus Schraal ==Hungarian==rätsel près +Retrouvez +Source1: httpswww.gno
 \end{lstlisting}
 \textbf{large}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 -music from 44.0 to 45.0: ======= erweisen erweisend erweisendlich Peter Deutscherweise Germanerweise Germangegenseitig erweiselich Germanerweise Englishgegenseitigerweise Englisherweiseerweise Englishgebührenpflichtig Germanerweise Polisherweise Polisherweise -Source0:  --music ==-music-music  erweise -erweise == =
 \end{lstlisting}
 \end{frame}
@@ -747,15 +775,15 @@ Minor quality of life improvements seitens unserer contributors this release: co
 \begin{frame}[fragile]{Untrained Models: Fine-Tuning is Necessary}
 Request: 1071207\\
 \textbf{small}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 -pdsh 2.34::-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch'] аеое о аи ереади в ил и рораии ирадиии орамителноо
 \end{lstlisting}
 \textbf{base}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 structured changelog for package pdsh 2.34:încreasing structured changelogging for package create structured change log for package build pcsh pkg 2.34.34:Auffinden Sie neue files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']Währenden +%patch9 -p1: Add-call/slursm_install-this
 \end{lstlisting}
 \textbf{large}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
  -p1
 \end{lstlisting}
 \end{frame}
@@ -836,20 +864,20 @@ t5-large & 12,468 & 308h 56m \\ \hline
 \textbf{Request 1111873 (gnome-music)}\\
 \vspace{0.1cm}
 \textbf{t5-small:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Update to version 45.0:
  + Minor quality of life improvements.
  + Updated translations.
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-base:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Update to version 45.0:
  + Minor quality of life improvements.
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-large:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Update to version 45.0:
  + Minor quality of life improvements.
 \end{lstlisting}
@@ -858,20 +886,20 @@ t5-large & 12,468 & 308h 56m \\ \hline
 \textbf{Request 1071207 (pdsh patch)}\\
 \vspace{0.1cm}
 \textbf{t5-small:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Add add-call-to-slurm_init-this-makes-
 sure-the-config-options-are-set.patch
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-base:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Add add-call-to-slurm_init-this-makes-
 sure-the-config-options-are-set.patch
  * Fixes build with newer version of SLE15
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-large:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Add-call-to-slurm_init-this-makes-sure-
 the-config-options-are-set.patch
 \end{lstlisting}
@@ -890,11 +918,11 @@ the-config-options-are-set.patch
 \begin{alertblock}{Ugly}
   \begin{itemize}
     \item \textbf{Overfitting}:
-    \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+    \begin{lstlisting}[basicstyle=\ttfamily\tiny]
 Updated translations
 \end{lstlisting}
     \item \textbf{Hallucinations}:
-    \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+    \begin{lstlisting}[basicstyle=\ttfamily\tiny]
 Fixes build with newer version of SLE15
 \end{lstlisting}
   \end{itemize}
@@ -905,7 +933,7 @@ Fixes build with newer version of SLE15
 \end{block}
 \begin{block}{Hallucination}
 Input doesn't contain any SLE15:
-    \begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+    \begin{lstlisting}[basicstyle=\ttfamily\tiny]
 create structured changelog for package pdsh 2.34:
 new files: ['Add-call-to-slurm_init-this-makes-sure-the-config-options-are-set.patch']
 changes in spec file:
@@ -981,20 +1009,20 @@ t5-large & 12,468 & 23h 56m \\ \hline
 \textbf{Request 1111873 (gnome-music)}\\
 \vspace{0.1cm}
 \textbf{t5-small:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Update to version 45.0:
  * Minor quality of life improvements
  * Thanks to our contributors this release
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-base:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Update to version 45.0:
  + Minor quality of life improvements.
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-large:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Update to version 45.0:
  + Minor quality of life improvements.
 \end{lstlisting}
@@ -1003,20 +1031,20 @@ t5-large & 12,468 & 23h 56m \\ \hline
 \textbf{Request 1071207 (pdsh patch)}\\
 \vspace{0.1cm}
 \textbf{t5-small:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Add-call-to-slurm_init-this-makes-sure-
 the-config-options-are-set.patch
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-base:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Add Add-call-to-slurm_init-this-makes
 sure the configuration options are
 set.patch
 \end{lstlisting}
 \vspace{0.1cm}
 \textbf{t5-large:}
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\tiny]
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
 - Add-call-to-slurm_init-this-makes-sure-
 the-config-options-are-set.patch
 \end{lstlisting}
